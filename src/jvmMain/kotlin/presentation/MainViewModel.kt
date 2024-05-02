@@ -104,8 +104,8 @@ class MainViewModel(
                 is Moving -> {
                     moveCard(
                         targetArrayDeck = turn.cards,
-                        fromIndexDeck = turn.fromIndex,
-                        toIndexDeck = turn.toIndex
+                        fromIndexDeck = turn.toIndex,
+                        toIndexDeck = turn.fromIndex
                     )
                 }
             }
