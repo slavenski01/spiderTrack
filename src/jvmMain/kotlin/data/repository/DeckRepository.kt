@@ -11,7 +11,8 @@ class DeckRepository : DeckRepo {
     private var currentGameField = CurrentGameField(
         additionalDeck = listOf(),
         decksInGame = listOf(),
-        suitsInGame = SUITS_NORMAL_LEVEL
+        suitsInGame = SUITS_NORMAL_LEVEL,
+        completableDecksCount = 0
     )
 
     override fun getCurrentDeckState(): CurrentGameField = currentGameField
@@ -73,6 +74,27 @@ class DeckRepository : DeckRepo {
         currentGameField = currentGameField.copy(
             decksInGame = gameFieldDecks.toList()
         )
+    }
+
+    override fun forcingAdditionalCards() {
+        for (i in 0 until FIELDS_FOR_GAME) {
+            val additionalCard = currentGameField.additionalDeck.last()
+            addCardsToDeckAndReturn(
+                arrayForAdd = arrayListOf(additionalCard),
+                targetDeckIndex = i,
+                isFromAdditional = true
+            )
+            currentGameField = currentGameField.copy(
+                additionalDeck = currentGameField.additionalDeck.subList(
+                    0,
+                    currentGameField.additionalDeck.lastIndex - 1
+                )
+            )
+        }
+    }
+
+    override fun completeDeck(cardsForComplete: ArrayList<Card>) {
+        currentGameField = currentGameField.copy(completableDecksCount = currentGameField.completableDecksCount + 1)
     }
 
     private fun createAllCard(
