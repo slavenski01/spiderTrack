@@ -94,10 +94,6 @@ class MainViewModel(
         }
     }
 
-    fun completeDeck(cardsForComplete: ArrayList<Card>) {
-        currentGameField = currentGameField.copy(completableDecksCount = currentGameField.completableDecksCount + 1)
-    }
-
     fun cancelTurn() {
         userTurnStack?.let {
             when (val turn = it.pop()) {
@@ -116,7 +112,11 @@ class MainViewModel(
         }
     }
 
-    fun returnForcingAdditional() {
+    private fun completeDeck(cardsForComplete: ArrayList<Card>) {
+        currentGameField = currentGameField.copy(completableDecksCount = currentGameField.completableDecksCount + 1)
+    }
+
+    private fun returnForcingAdditional() {
         val currentDeckList = mutableListOf<Deck>()
         for (i in 0 until FIELDS_FOR_GAME) {
             val additionalCard = currentGameField.decksInGame[i].openCards.last().last()

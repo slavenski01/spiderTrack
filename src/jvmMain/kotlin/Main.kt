@@ -12,11 +12,8 @@ import presentation.MainViewModel
 @Composable
 @Preview
 fun App() {
-    val viewModel = MainViewModel(
-        deckRepository = DeckRepository(
-            Local()
-        )
-    )
+    val viewModel = MainViewModel(deckRepository = DeckRepository(Local()))
+
     var text by remember { mutableStateOf("Hello, World!") }
     viewModel.shuffleAndGetDeckState()
     MaterialTheme {
