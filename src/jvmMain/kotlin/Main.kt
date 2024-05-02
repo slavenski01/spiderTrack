@@ -6,13 +6,18 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import data.repository.DeckRepository
+import data.source.Local
 
 @Composable
 @Preview
 fun App() {
-    val viewModel = MainViewModel(deckRepository = DeckRepository())
+    val viewModel = MainViewModel(
+        deckRepository = DeckRepository(
+            Local()
+        )
+    )
     var text by remember { mutableStateOf("Hello, World!") }
-    viewModel.testShuffle()
+    viewModel.shuffleAndGetDeckState()
     MaterialTheme {
         Button(onClick = {
             text = "Hello, Desktop!"
