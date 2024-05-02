@@ -1,14 +1,21 @@
+package presentation
+
 import consts.*
 import data.models.Card
 import data.models.CurrentGameField
 import data.models.Deck
 import data.repository.DeckRepository
+import presentation.models.ForcingFromAdditional
+import presentation.models.Moving
+import presentation.models.UserTurn
 import utils.getCountCloseSlots
+import java.util.*
 
 class MainViewModel(
     private val deckRepository: DeckRepository
 ) {
     private var currentGameField = deckRepository.getCurrentDeckState()
+    private var userTurnStack: Stack<UserTurn>? = null
 
     fun shuffleAndGetDeckState(): CurrentGameField {
 
@@ -91,6 +98,68 @@ class MainViewModel(
         currentGameField = currentGameField.copy(completableDecksCount = currentGameField.completableDecksCount + 1)
     }
 
+    fun cancelTurn() {
+        userTurnStack?.let {
+            when (val turn = it.pop()) {
+                is ForcingFromAdditional -> {
+                    returnForcingAdditional()
+                }
+
+                is Moving -> {
+                    moveCard(
+                        targetArrayDeck = turn.cards,
+                        fromIndexDeck = turn.fromIndex,
+                        toIndexDeck = turn.toIndex
+                    )
+                }
+            }
+        }
+    }
+
+    fun returnForcingAdditional() {
+        val currentDeckList = mutableListOf<Deck>()
+        for (i in 0 until FIELDS_FOR_GAME) {
+            val additionalCard = currentGameField.decksInGame[i].openCards.last().last()
+            val additionalCardsList = currentGameField.additionalDeck.toMutableList()
+            additionalCardsList.add(additionalCard)
+
+            currentGameField = currentGameField.copy(
+                additionalDeck = additionalCardsList.toList(),
+            )
+
+            val currentDeck = currentGameField.decksInGame[i]
+            currentDeckList.add(
+                Deck(
+                    positionInGameField = i,
+                    closedCards = currentDeck.closedCards,
+                    openCards = removeLastCardAndReturnOpenCardsArray(openCards = currentDeck.openCards)
+                )
+            )
+        }
+    }
+
+    private fun removeLastCardAndReturnOpenCardsArray(
+        openCards: ArrayList<ArrayList<Card>>
+    ): ArrayList<ArrayList<Card>> {
+        val currentOpenCard = arrayListOf(arrayListOf<Card>())
+        if (openCards.last().size == 1) {
+            for (i in 0 until openCards.size - 1) {
+                currentOpenCard.add(openCards[i])
+            }
+        } else {
+            for (i in 0 until openCards.size) {
+                if (i == openCards.size - 1) {
+                    for (j in 0..openCards[i].size - 2) {
+                        currentOpenCard[i].add(openCards[i][j])
+                    }
+                } else {
+                    currentOpenCard.add(openCards[i])
+                }
+            }
+        }
+        return currentOpenCard
+    }
+
     private fun createAllCard(
         levelGame: Int
     ): List<Card> {
@@ -170,7 +239,11 @@ class MainViewModel(
             }
 
             currentDeck.openCards.last().last().value - arrayForAdd.first().value == 1 -> {
-                currentDeck.openCards.last().addAll(arrayForAdd)
+                if (currentDeck.openCards.last().last().suit == arrayForAdd.first().suit) {
+                    currentDeck.openCards.last().addAll(arrayForAdd)
+                } else {
+                    currentDeck.openCards.add(arrayForAdd)
+                }
             }
         }
 
