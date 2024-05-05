@@ -14,11 +14,11 @@ fun DrawScope.drawDiamondsSuit(
     height: Dp
 ) {
     val path = Path().apply {
-        moveTo((x + width.value) / 2f, y)
-        lineTo(x + width.value, (y + height.value) / 2f)
-        lineTo((x + width.value) / 2f, y + height.value)
-        lineTo(x, height.value / 2f)
-        lineTo((x + width.value) / 2f, y)
+        moveTo(x + width.value / 2f, y)
+        lineTo(x + width.value, y + height.value / 2f)
+        lineTo(x + width.value / 2f, y + height.value)
+        lineTo(x, y + height.value / 2f)
+        lineTo(x + width.value / 2f, y)
         close()
     }
     drawPath(path, color = Color.Red)
@@ -33,7 +33,7 @@ fun DrawScope.drawHeartSuit(
     val path = Path().apply {
         moveTo(x, y)
         lineTo(x + width.value, y)
-        lineTo((x + width.value) / 2f, y + height.value)
+        lineTo(x + width.value / 2f, y + height.value)
         lineTo(x, y)
         close()
     }
@@ -47,14 +47,14 @@ fun DrawScope.drawCrossSuit(
     height: Dp
 ) {
     drawLine(
-        start = Offset((x + width.value) / 2f, y),
-        end = Offset((x + width.value) / 2f, y + height.value),
+        start = Offset(x + width.value / 2f, y),
+        end = Offset(x + width.value / 2f, y + height.value),
         color = Color.Black,
         strokeWidth = 20.dp.value
     )
     drawLine(
-        start = Offset(x, (y + height.value) / 2f),
-        end = Offset(x + width.value, (y + height.value) / 2f),
+        start = Offset(x, y + height.value / 2f),
+        end = Offset(x + width.value, y + height.value / 2f),
         color = Color.Black,
         strokeWidth = 20.dp.value
     )
@@ -68,8 +68,8 @@ fun DrawScope.drawSpadesSuit(
 ) {
     val path = Path().apply {
         moveTo(x, y + height.value)
-        lineTo((x + width.value) / 2f, y)
-        lineTo(x + width.value, y)
+        lineTo(x + width.value / 2f, y)
+        lineTo(x + width.value, y + height.value)
         lineTo(x, y + height.value)
         close()
     }
