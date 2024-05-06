@@ -1,24 +1,49 @@
 import androidx.compose.desktop.ui.tooling.preview.Preview
-import androidx.compose.material.Button
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
-import androidx.compose.runtime.*
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.text.ExperimentalTextApi
+import androidx.compose.ui.text.TextMeasurer
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import data.repository.DeckRepository
+import data.source.Local
+import presentation.MainViewModel
+import presentation.ui.draws.drawField
 
+@OptIn(ExperimentalTextApi::class)
 @Composable
 @Preview
-fun App() {
-    val viewModel = MainViewModel(deckRepository = DeckRepository())
-    var text by remember { mutableStateOf("Hello, World!") }
-    viewModel.testShuffle()
-    MaterialTheme {
-        Button(onClick = {
-            text = "Hello, Desktop!"
-        }) {
-            Text(text)
+fun App(
+
+) {
+    val mainViewModel = MainViewModel(DeckRepository(Local()))
+    val currentGameField = mainViewModel.shuffleAndGetDeckState()
+    val decks = mainViewModel.shuffleAndGetDeckState().decksInGame
+    var countNeedMeasurers = 0
+
+    decks.forEach {
+        it.openCards.forEach { openCards ->
+            countNeedMeasurers += openCards.size
         }
+    }
+
+    val textMeasurers = mutableListOf<TextMeasurer>()
+    for (i in 0..countNeedMeasurers) {
+        textMeasurers.add(rememberTextMeasurer())
+    }
+
+    Canvas(modifier = Modifier.fillMaxSize()) {
+        drawField(
+            width = size.width,
+            height = size.height,
+            topLeftOffset = Offset(1f, 1f),
+            currentGameField = currentGameField,
+            textMeasurers = textMeasurers,
+        )
     }
 }
 
