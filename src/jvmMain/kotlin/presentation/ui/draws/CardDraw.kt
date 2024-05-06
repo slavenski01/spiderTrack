@@ -4,6 +4,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.text.TextMeasurer
@@ -11,22 +12,48 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.unit.dp
 import consts.CardSuits
-import presentation.ui.model.CardUI
+import presentation.ui.model.CardOpenUI
 import presentation.ui.model.valueToString
 import kotlin.math.min
 
 @OptIn(ExperimentalTextApi::class)
-fun DrawScope.drawCard(
+fun DrawScope.drawOpenCard(
     x: Float,
     y: Float,
     width: Float,
     height: Float,
-    cardUI: CardUI,
+    cardOpenUI: CardOpenUI,
     textMeasurer: TextMeasurer
 ) {
+    drawRect(color = Color.White, topLeft = Offset(x, y), alpha = 1f, size = Size(width, height))
     drawCardBorder(x, y, width, height)
-    drawMiniSuit(x, y, width, height, cardUI.suit)
-    drawValue(x, y, cardUI, textMeasurer, Pair(width, height))
+    drawMiniSuit(x, y, width, height, cardOpenUI.suit)
+    drawValue(x, y, cardOpenUI, textMeasurer, Pair(width, height))
+}
+
+fun DrawScope.drawCloseCard(
+    x: Float,
+    y: Float,
+    width: Float,
+    height: Float,
+) {
+    drawCardBorder(x, y, width, height)
+    drawRect(
+        topLeft = Offset(x, y),
+        color = Color.Blue,
+        size = Size(width, height),
+        style = Fill,
+        alpha = 1f
+    )
+}
+
+fun DrawScope.drawEmptyCard(
+    x: Float,
+    y: Float,
+    width: Float,
+    height: Float,
+) {
+    drawCardBorder(x, y, width, height)
 }
 
 private fun DrawScope.drawCardBorder(
@@ -47,7 +74,7 @@ private fun DrawScope.drawCardBorder(
 private fun DrawScope.drawValue(
     topX: Float,
     topY: Float,
-    cardUI: CardUI,
+    cardOpenUI: CardOpenUI,
     textMeasurer: TextMeasurer,
     cardSize: Pair<Float, Float>
 ) {
@@ -56,20 +83,20 @@ private fun DrawScope.drawValue(
         x = cardSize.first / 2 - fontSize / 2 + topX,
         y = cardSize.second / 2 - fontSize / 2 + topY
     )
+
     drawText(
         textMeasurer,
-        cardUI.valueToString(),
+        cardOpenUI.valueToString(),
         topLeft = topLeft,
         maxLines = 1,
         style = TextStyle(
-            color = if (cardUI.suit == CardSuits.SUIT_CROSS || cardUI.suit == CardSuits.SUIT_SPADES) {
+            color = if (cardOpenUI.suit == CardSuits.SUIT_CROSS || cardOpenUI.suit == CardSuits.SUIT_SPADES) {
                 Color.Black
             } else {
                 Color.Red
             },
             fontSize = fontSize.toSp(),
-
-            )
+        )
     )
 }
 

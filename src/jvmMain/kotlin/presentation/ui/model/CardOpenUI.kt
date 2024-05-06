@@ -2,12 +2,12 @@ package presentation.ui.model
 
 import consts.CardSuits
 
-data class CardUI(
+data class CardOpenUI(
     val value: Int,
     val suit: CardSuits
 )
 
-fun CardUI.valueToString() =
+fun CardOpenUI.valueToString() =
     when (this.value) {
         0 -> "A"
         in 1..9 -> (this.value + 1).toString()

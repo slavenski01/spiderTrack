@@ -3,16 +3,16 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.text.ExperimentalTextApi
+import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
-import consts.CardSuits
 import data.repository.DeckRepository
 import data.source.Local
 import presentation.MainViewModel
-import presentation.ui.draws.drawCard
-import presentation.ui.model.CardUI
+import presentation.ui.draws.drawField
 
 @OptIn(ExperimentalTextApi::class)
 @Composable
@@ -21,18 +21,28 @@ fun App(
 
 ) {
     val mainViewModel = MainViewModel(DeckRepository(Local()))
-    mainViewModel.shuffleAndGetDeckState()
+    val currentGameField = mainViewModel.shuffleAndGetDeckState()
+    val decks = mainViewModel.shuffleAndGetDeckState().decksInGame
+    var countNeedMeasurers = 0
 
-    val textMeasurer = rememberTextMeasurer()
+    decks.forEach {
+        it.openCards.forEach { openCards ->
+            countNeedMeasurers += openCards.size
+        }
+    }
+
+    val textMeasurers = mutableListOf<TextMeasurer>()
+    for (i in 0..countNeedMeasurers) {
+        textMeasurers.add(rememberTextMeasurer())
+    }
 
     Canvas(modifier = Modifier.fillMaxSize()) {
-        drawCard(
-            x = 200f,
-            y = 200f,
-            width = size.width / 12f,
-            height = size.height / 6f,
-            cardUI = CardUI(0, CardSuits.SUIT_CROSS),
-            textMeasurer
+        drawField(
+            width = size.width,
+            height = size.height,
+            topLeftOffset = Offset(1f, 1f),
+            currentGameField = currentGameField,
+            textMeasurers = textMeasurers,
         )
     }
 }

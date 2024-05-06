@@ -8,3 +8,7 @@ const val CARDS_ON_SUIT = 13
 const val SUITS_EASY_LEVEL = 1
 const val SUITS_NORMAL_LEVEL = 2
 const val SUITS_HARD_LEVEL = 4
+
+const val CARD_HEIGHT = 200f
+const val MARGIN_CARD = 20
+const val DELIMITER_CARD = 20
