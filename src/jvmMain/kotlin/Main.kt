@@ -12,6 +12,7 @@ import androidx.compose.ui.window.application
 import data.repository.DeckRepository
 import data.source.Local
 import presentation.MainViewModel
+import presentation.ui.GameField
 import presentation.ui.draws.drawField
 
 @OptIn(ExperimentalTextApi::class)
@@ -47,8 +48,20 @@ fun App(
     }
 }
 
+@Composable
+@Preview
+fun AppV2() {
+    val mainViewModel = MainViewModel(DeckRepository(Local()))
+    val currentGameField = mainViewModel.shuffleAndGetDeckState()
+
+    GameField(
+        modifier = Modifier.fillMaxSize(),
+        currentGameField
+    )
+}
+
 fun main() = application {
     Window(onCloseRequest = ::exitApplication) {
-        App()
+        AppV2()
     }
 }
