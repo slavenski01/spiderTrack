@@ -50,13 +50,13 @@ fun DrawScope.drawCrossSuit(
         start = Offset(x + width.value / 2f, y),
         end = Offset(x + width.value / 2f, y + height.value),
         color = Color.Black,
-        strokeWidth = 20.dp.value
+        strokeWidth = 5.dp.value
     )
     drawLine(
         start = Offset(x, y + height.value / 2f),
         end = Offset(x + width.value, y + height.value / 2f),
         color = Color.Black,
-        strokeWidth = 20.dp.value
+        strokeWidth = 5.dp.value
     )
 }
 
