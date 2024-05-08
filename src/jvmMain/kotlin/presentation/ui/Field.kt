@@ -34,6 +34,7 @@ import data.models.CurrentGameField
 import presentation.ui.draws.drawCloseCard
 import presentation.ui.draws.drawEmptyCard
 import presentation.ui.draws.drawOpenCard
+import utils.bringToFront
 
 @Composable
 fun GameField(
@@ -89,7 +90,9 @@ fun BottomField(
     Row(
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        currentGameField.decksInGame.forEachIndexed { index, deck ->
+        var indexDraggingDeck by remember { mutableStateOf(0) }
+
+        currentGameField.decksInGame.forEachIndexed { indexDeck, deck ->
             var deckHeightIndex = 0
             deckHeightIndex += deck.closedCards.size
             deck.openCards.forEach { openDeck ->
@@ -100,6 +103,9 @@ fun BottomField(
                 modifier = modifier
                     .width(CARD_WIDTH.dp)
                     .height((deckHeightIndex * DELIMITER_CARD).dp + CARD_HEIGHT.dp)
+                    .let {
+                        if (indexDraggingDeck == indexDeck) it.bringToFront() else it
+                    }
             ) {
                 var marginIndex = 0
                 deck.closedCards.forEachIndexed { index, card ->
@@ -118,11 +124,13 @@ fun BottomField(
 
                 deck.openCards.forEach { array ->
                     var marginIndexOpenArray = marginIndex
-                    array.forEach {
+
+                    array.forEach { card ->
                         val textMeasurer = rememberTextMeasurer()
                         var topBoxOffset by remember { mutableStateOf(Offset(0f, 0f)) }
+
                         Canvas(
-                            Modifier
+                            modifier = Modifier
                                 .width(CARD_WIDTH.dp)
                                 .fillMaxHeight()
                                 .padding(top = (marginIndexOpenArray * DELIMITER_CARD).dp)
@@ -130,17 +138,21 @@ fun BottomField(
                                     IntOffset(topBoxOffset.x.toInt(), topBoxOffset.y.toInt())
                                 }
                                 .onDrag(
-                                    onDragEnd = { topBoxOffset = Offset(0f, 0f) }
-                                ) { // all default: enabled = true, matcher = PointerMatcher.Primary (left mouse button)
-                                    topBoxOffset += it
-                                }
+                                    onDragEnd = {
+                                        topBoxOffset = Offset(0f, 0f)
+                                    },
+                                    onDrag = {
+                                        indexDraggingDeck = indexDeck
+                                        topBoxOffset += it
+                                    }
+                                )
                         ) {
                             drawOpenCard(
                                 x = 0f,
                                 y = 0f,
                                 width = size.width,
                                 height = size.height,
-                                cardOpenUI = it.toCardUI(),
+                                cardOpenUI = card.toCardUI(),
                                 textMeasurer = textMeasurer
                             )
                         }
