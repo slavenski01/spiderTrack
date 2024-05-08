@@ -30,6 +30,7 @@ import consts.CARD_WIDTH
 import consts.DELIMITER_CARD
 import consts.MARGIN_CARD
 import consts.NEED_DECKS_FOR_FINISH
+import data.models.Card
 import data.models.CurrentGameField
 import presentation.ui.draws.drawCloseCard
 import presentation.ui.draws.drawEmptyCard
@@ -39,13 +40,17 @@ import utils.bringToFront
 @Composable
 fun GameField(
     modifier: Modifier,
-    currentGameField: CurrentGameField
+    currentGameField: CurrentGameField,
+    onValidateMovement: (Int, Int) -> Boolean,
+    onStopMovingOpenCard: (Int, Int, ArrayList<Card>) -> Unit
 ) {
     Column(modifier) {
         TopField(Modifier.fillMaxWidth().height(CARD_HEIGHT.dp).padding(MARGIN_CARD.dp))
         BottomField(
             modifier = Modifier.padding(MARGIN_CARD.dp),
-            currentGameField = currentGameField
+            currentGameField = currentGameField,
+            onValidateMovement = onValidateMovement,
+            onStopMovingOpenCard = onStopMovingOpenCard
         )
     }
 }
@@ -86,6 +91,9 @@ fun TopField(
 fun BottomField(
     modifier: Modifier,
     currentGameField: CurrentGameField,
+    onValidateMovement: (Int, Int) -> Boolean,
+    //fromDeckIndex, toDeckIndex, cards for movement
+    onStopMovingOpenCard: (Int, Int, ArrayList<Card>) -> Unit,
 ) {
     Row(
         horizontalArrangement = Arrangement.SpaceBetween
@@ -122,10 +130,10 @@ fun BottomField(
                     marginIndex++
                 }
 
-                deck.openCards.forEach { array ->
+                deck.openCards.forEachIndexed { indexOpenDeck, array ->
                     var marginIndexOpenArray = marginIndex
 
-                    array.forEach { card ->
+                    array.forEachIndexed { indexOpenCard, card ->
                         val textMeasurer = rememberTextMeasurer()
                         var topBoxOffset by remember { mutableStateOf(Offset(0f, 0f)) }
 
@@ -140,10 +148,17 @@ fun BottomField(
                                 .onDrag(
                                     onDragEnd = {
                                         topBoxOffset = Offset(0f, 0f)
+                                        onStopMovingOpenCard(
+                                            indexDeck,
+                                            2,
+                                            arrayListOf(card)
+                                        )
                                     },
                                     onDrag = {
-                                        indexDraggingDeck = indexDeck
-                                        topBoxOffset += it
+                                        if (onValidateMovement(indexDeck, indexOpenDeck)) {
+                                            indexDraggingDeck = indexDeck
+                                            topBoxOffset += it
+                                        }
                                     }
                                 )
                         ) {

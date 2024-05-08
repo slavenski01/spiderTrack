@@ -1,23 +1,42 @@
 package presentation
 
-import consts.*
+import consts.ADDITIONAL_DECKS
+import consts.CARDS_ON_SUIT
+import consts.CardSuits
+import consts.FIELDS_FOR_GAME
+import consts.NEED_DECKS_FOR_FINISH
+import consts.SUITS_NORMAL_LEVEL
 import data.models.Card
 import data.models.CurrentGameField
 import data.models.Deck
-import data.repository.DeckRepository
 import presentation.models.ForcingFromAdditional
 import presentation.models.Moving
 import presentation.models.UserTurn
+import presentation.providers.GameStateProvider
 import utils.getCountCloseSlots
-import java.util.*
+import java.util.Stack
 
 class MainViewModel(
-    private val deckRepository: DeckRepository
+    stateProvider: GameStateProvider
 ) {
-    private var currentGameField = deckRepository.getCurrentDeckState()
+    private var currentGameField = CurrentGameField(
+        listOf(),
+        listOf(),
+        SUITS_NORMAL_LEVEL,
+        0
+    )
+
     private var userTurnStack: Stack<UserTurn>? = null
 
-    fun shuffleAndGetDeckState(): CurrentGameField {
+    private var gameStateProvider = stateProvider
+
+    init {
+        shuffleAndGetDeckState()
+    }
+
+    fun getCurrentField() = gameStateProvider.gameField
+
+    fun shuffleAndGetDeckState() {
 
         var allCardsList = createAllCard(currentGameField.suitsInGame).shuffled().toMutableList()
 
@@ -37,7 +56,7 @@ class MainViewModel(
             decksInGame = createDecksForGame(allCardsList)
         )
 
-        return currentGameField
+        gameStateProvider.gameField = currentGameField
     }
 
     fun isPossibleStartMove(deckPosition: Int, deckSubArrayIndex: Int): Boolean {
@@ -113,7 +132,8 @@ class MainViewModel(
     }
 
     private fun completeDeck(cardsForComplete: ArrayList<Card>) {
-        currentGameField = currentGameField.copy(completableDecksCount = currentGameField.completableDecksCount + 1)
+        currentGameField =
+            currentGameField.copy(completableDecksCount = currentGameField.completableDecksCount + 1)
     }
 
     private fun returnForcingAdditional() {
