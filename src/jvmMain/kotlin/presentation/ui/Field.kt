@@ -95,7 +95,7 @@ fun BottomField(
             deck.openCards.forEach { openDeck ->
                 deckHeightIndex += openDeck.size
             }
-            println(deckHeightIndex)
+
             Box(
                 modifier = modifier
                     .width(CARD_WIDTH.dp)

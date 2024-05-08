@@ -8,8 +8,12 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.unit.DpSize
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
+import androidx.compose.ui.window.WindowState
 import androidx.compose.ui.window.application
+import consts.CARD_WIDTH
 import data.repository.DeckRepository
 import data.source.Local
 import presentation.MainViewModel
@@ -62,7 +66,17 @@ fun AppV2() {
 }
 
 fun main() = application {
-    Window(onCloseRequest = ::exitApplication) {
+    Window(
+        title = "SpiderTrack",
+        onCloseRequest = ::exitApplication,
+        resizable = false,
+        state = WindowState().apply {
+            size = DpSize(
+                (CARD_WIDTH * 14).dp,
+                700.dp
+            )
+        }
+    ) {
         AppV2()
     }
 }
