@@ -11,6 +11,7 @@ import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import consts.CardSuits
 import presentation.ui.model.CardOpenUI
 import presentation.ui.model.valueToString
@@ -79,15 +80,31 @@ private fun DrawScope.drawValue(
     cardSize: Pair<Float, Float>
 ) {
     val fontSize = min(cardSize.first, cardSize.second) * 0.65f
-    val topLeft = Offset(
+    val fontMiniCenterTop = 15.sp
+    val topLeftCenter = Offset(
         x = cardSize.first / 2 - fontSize / 2 + topX,
         y = cardSize.second / 2 - fontSize / 2 + topY
     )
-
+    //topCenter
+    drawText(
+        textMeasurer = textMeasurer,
+        text = cardOpenUI.valueToString(),
+        topLeft = Offset(cardSize.first / 2, 10.dp.value),
+        maxLines = 1,
+        style = TextStyle(
+            color = if (cardOpenUI.suit == CardSuits.SUIT_CROSS || cardOpenUI.suit == CardSuits.SUIT_SPADES) {
+                Color.Black
+            } else {
+                Color.Red
+            },
+            fontSize = fontMiniCenterTop,
+        )
+    )
+    //center
     drawText(
         textMeasurer,
         cardOpenUI.valueToString(),
-        topLeft = topLeft,
+        topLeft = topLeftCenter,
         maxLines = 1,
         style = TextStyle(
             color = if (cardOpenUI.suit == CardSuits.SUIT_CROSS || cardOpenUI.suit == CardSuits.SUIT_SPADES) {
