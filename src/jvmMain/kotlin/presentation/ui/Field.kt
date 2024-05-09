@@ -2,6 +2,8 @@ package presentation.ui
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.onDrag
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -9,6 +11,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
@@ -21,8 +24,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.text.ExperimentalTextApi
-import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import consts.CARD_HEIGHT
@@ -32,9 +34,9 @@ import consts.MARGIN_CARD
 import consts.NEED_DECKS_FOR_FINISH
 import data.models.Card
 import data.models.CurrentGameField
+import presentation.ui.draws.CardOpenDraw
 import presentation.ui.draws.drawCloseCard
 import presentation.ui.draws.drawEmptyCard
-import presentation.ui.draws.drawOpenCard
 import utils.bringToFront
 
 @Composable
@@ -86,7 +88,7 @@ fun TopField(
     }
 }
 
-@OptIn(ExperimentalTextApi::class, ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun BottomField(
     modifier: Modifier,
@@ -117,27 +119,22 @@ fun BottomField(
             ) {
                 var marginIndex = 0
                 deck.closedCards.forEachIndexed { index, card ->
-                    Canvas(
+                    Box(
                         Modifier
                             .width(CARD_WIDTH.dp)
                             .fillMaxHeight()
                             .padding(top = (DELIMITER_CARD * index).dp)
-                    ) {
-                        drawCloseCard(
-                            0f, 0f, size.width, size.height
-                        )
-                    }
+                            .border(width = 2.dp, color = Color.Black)
+                            .background(Color.Blue)
+                    )
                     marginIndex++
                 }
 
+                var marginIndexOpenArray = marginIndex
                 deck.openCards.forEachIndexed { indexOpenDeck, array ->
-                    var marginIndexOpenArray = marginIndex
-
                     array.forEachIndexed { indexOpenCard, card ->
-                        val textMeasurer = rememberTextMeasurer()
                         var topBoxOffset by remember { mutableStateOf(Offset(0f, 0f)) }
-
-                        Canvas(
+                        Box(
                             modifier = Modifier
                                 .width(CARD_WIDTH.dp)
                                 .fillMaxHeight()
@@ -162,13 +159,9 @@ fun BottomField(
                                     }
                                 )
                         ) {
-                            drawOpenCard(
-                                x = 0f,
-                                y = 0f,
-                                width = size.width,
-                                height = size.height,
-                                cardOpenUI = card.toCardUI(),
-                                textMeasurer = textMeasurer
+                            CardOpenDraw(
+                                modifier = Modifier.fillMaxSize(),
+                                cardOpenUI = card.toCardUI()
                             )
                         }
                         marginIndexOpenArray++

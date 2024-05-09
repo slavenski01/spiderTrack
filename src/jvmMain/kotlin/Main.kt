@@ -20,8 +20,16 @@ import presentation.ui.GameField
 
 @Composable
 @Preview
-fun AppV2(mainViewModel: MainViewModel) {
+fun App(mainViewModel: MainViewModel) {
     Column {
+        Button(
+            modifier = Modifier.align(Alignment.CenterHorizontally),
+            onClick = {
+                mainViewModel.shuffleAndGetDeckState()
+            }
+        ) {
+            Text("Новая игра")
+        }
         GameField(
             modifier = Modifier.fillMaxWidth(),
             currentGameField = mainViewModel.getCurrentField(),
@@ -39,15 +47,6 @@ fun AppV2(mainViewModel: MainViewModel) {
                 )
             }
         )
-
-        Button(
-            modifier = Modifier.align(Alignment.CenterHorizontally),
-            onClick = {
-                mainViewModel.shuffleAndGetDeckState()
-            }
-        ) {
-            Text("Новая игра")
-        }
     }
 }
 
@@ -63,7 +62,7 @@ fun main() = application {
             )
         }
     ) {
-        AppV2(
+        App(
             MainViewModel(
                 GameStateProvider(DeckRepository(Local()))
             )

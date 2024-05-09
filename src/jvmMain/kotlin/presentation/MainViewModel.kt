@@ -94,6 +94,7 @@ class MainViewModel(
         currentGameField = currentGameField.copy(
             decksInGame = gameFieldDecks.toList()
         )
+        gameStateProvider.gameField = currentGameField
     }
 
     fun forcingAdditionalCards() {
