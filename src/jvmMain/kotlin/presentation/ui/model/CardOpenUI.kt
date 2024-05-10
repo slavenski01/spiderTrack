@@ -1,5 +1,6 @@
 package presentation.ui.model
 
+import androidx.compose.ui.graphics.Color
 import consts.CardSuits
 
 data class CardOpenUI(
@@ -15,4 +16,10 @@ fun CardOpenUI.valueToString() =
         11 -> "Q"
         12 -> "K"
         else -> "A"
+    }
+
+fun CardOpenUI.getColorText() =
+    when (this.suit) {
+        CardSuits.SUIT_CROSS, CardSuits.SUIT_SPADES -> Color.Black
+        CardSuits.SUIT_HEART, CardSuits.SUIT_DIAMONDS -> Color.Red
     }

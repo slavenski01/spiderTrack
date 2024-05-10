@@ -1,54 +1,76 @@
 import androidx.compose.desktop.ui.tooling.preview.Preview
-import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material.Button
+import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.text.ExperimentalTextApi
-import androidx.compose.ui.text.TextMeasurer
-import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.unit.DpSize
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
+import androidx.compose.ui.window.WindowState
 import androidx.compose.ui.window.application
+import consts.CARD_WIDTH
 import data.repository.DeckRepository
 import data.source.Local
 import presentation.MainViewModel
-import presentation.ui.draws.drawField
+import presentation.ui.GameField
 
-@OptIn(ExperimentalTextApi::class)
 @Composable
 @Preview
-fun App(
+fun App(mainViewModel: MainViewModel) {
+    Column {
+        var state by mutableStateOf(mainViewModel.getCurrentState())
 
-) {
-    val mainViewModel = MainViewModel(DeckRepository(Local()))
-    val currentGameField = mainViewModel.shuffleAndGetDeckState()
-    val decks = mainViewModel.shuffleAndGetDeckState().decksInGame
-    var countNeedMeasurers = 0
-
-    decks.forEach {
-        it.openCards.forEach { openCards ->
-            countNeedMeasurers += openCards.size
+        Button(
+            modifier = Modifier.align(Alignment.CenterHorizontally),
+            onClick = {
+                mainViewModel.shuffleAndGetDeckState()
+                state = mainViewModel.getCurrentState()
+            }
+        ) {
+            Text("Новая игра")
         }
-    }
-
-    val textMeasurers = mutableListOf<TextMeasurer>()
-    for (i in 0..countNeedMeasurers) {
-        textMeasurers.add(rememberTextMeasurer())
-    }
-
-    Canvas(modifier = Modifier.fillMaxSize()) {
-        drawField(
-            width = size.width,
-            height = size.height,
-            topLeftOffset = Offset(1f, 1f),
-            currentGameField = currentGameField,
-            textMeasurers = textMeasurers,
+        GameField(
+            modifier = Modifier.fillMaxWidth(),
+            currentGameField = state.gameField,
+            onValidateMovement = { indexGameDeck, indexOpenDeck ->
+                mainViewModel.isPossibleStartMove(
+                    deckPosition = indexGameDeck,
+                    indexOpenDeck = indexOpenDeck
+                )
+            },
+            onStopMovingOpenCard = { fromIndex, toIndex, cardsArray ->
+                mainViewModel.moveCard(
+                    cardsForMove = cardsArray,
+                    fromIndexDeck = fromIndex,
+                    toIndexDeck = toIndex
+                )
+                state = mainViewModel.getCurrentState()
+            }
         )
     }
 }
 
 fun main() = application {
-    Window(onCloseRequest = ::exitApplication) {
-        App()
+    Window(
+        title = "SpiderTrack",
+        onCloseRequest = ::exitApplication,
+        resizable = false,
+        state = WindowState().apply {
+            size = DpSize(
+                (CARD_WIDTH * 14).dp,
+                700.dp
+            )
+        }
+    ) {
+        val mainViewModel = MainViewModel(DeckRepository(Local()))
+        App(
+            mainViewModel
+        )
     }
 }

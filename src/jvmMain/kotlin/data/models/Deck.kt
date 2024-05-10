@@ -6,7 +6,7 @@ import presentation.ui.model.CardOpenUI
 data class Deck(
     val positionInGameField: Int,
     val closedCards: List<Card>,
-    val openCards: ArrayList<ArrayList<Card>>
+    val openCards: List<Card>
 )
 
 data class Card(
