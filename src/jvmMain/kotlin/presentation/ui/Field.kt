@@ -100,7 +100,7 @@ fun BottomField(
     onStopMovingOpenCard: (Int, Int, ArrayList<Card>) -> Unit,
 ) {
     var indexDraggingDeck by remember { mutableStateOf(0) }
-    val decsCords by remember { mutableStateOf(mutableListOf<Pair<Offset, Int>>()) }
+    val decsCords by remember { mutableStateOf(mutableListOf<Offset>()) }
     Row(
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
@@ -120,7 +120,7 @@ fun BottomField(
                         val x = position.positionInWindow().x
                         val y = position.positionInWindow().y
                         if (decsCords.size < FIELDS_FOR_GAME) {
-                            decsCords.add(Pair(Offset(x, y), indexDeck))
+                            decsCords.add(Offset(x, y))
                         }
                     }
             ) {
@@ -150,15 +150,15 @@ fun BottomField(
                             }
                             .onDrag(
                                 onDragEnd = {
-                                    val cordsToX = decsCords[indexDeck].first.x + topBoxOffset.x
+                                    val cordsToX = decsCords[indexDeck].x + topBoxOffset.x
                                     var indexToDeck = 0
 
-                                    if (cordsToX > decsCords.last().first.x) {
-                                        indexToDeck = decsCords.last().second
+                                    if (cordsToX > decsCords.last().x) {
+                                        indexToDeck = decsCords.lastIndex
                                     } else {
                                         for (i in 0..decsCords.size - 2) {
-                                            if (cordsToX in decsCords[i].first.x..decsCords[i + 1].first.x) {
-                                                indexToDeck = decsCords[i].second
+                                            if (cordsToX in decsCords[i].x..decsCords[i + 1].x) {
+                                                indexToDeck = i
                                             }
                                         }
                                     }
