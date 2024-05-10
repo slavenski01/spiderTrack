@@ -35,7 +35,6 @@ import consts.NEED_DECKS_FOR_FINISH
 import data.models.Card
 import data.models.CurrentGameField
 import presentation.ui.draws.CardOpenDraw
-import presentation.ui.draws.drawCloseCard
 import presentation.ui.draws.drawEmptyCard
 import utils.bringToFront
 
@@ -105,9 +104,7 @@ fun BottomField(
         currentGameField.decksInGame.forEachIndexed { indexDeck, deck ->
             var deckHeightIndex = 0
             deckHeightIndex += deck.closedCards.size
-            deck.openCards.forEach { openDeck ->
-                deckHeightIndex += openDeck.size
-            }
+            deckHeightIndex += deck.openCards.size
 
             Box(
                 modifier = modifier
@@ -131,41 +128,39 @@ fun BottomField(
                 }
 
                 var marginIndexOpenArray = marginIndex
-                deck.openCards.forEachIndexed { indexOpenDeck, array ->
-                    array.forEachIndexed { indexOpenCard, card ->
-                        var topBoxOffset by remember { mutableStateOf(Offset(0f, 0f)) }
-                        Box(
-                            modifier = Modifier
-                                .width(CARD_WIDTH.dp)
-                                .fillMaxHeight()
-                                .padding(top = (marginIndexOpenArray * DELIMITER_CARD).dp)
-                                .offset {
-                                    IntOffset(topBoxOffset.x.toInt(), topBoxOffset.y.toInt())
-                                }
-                                .onDrag(
-                                    onDragEnd = {
-                                        topBoxOffset = Offset(0f, 0f)
-                                        onStopMovingOpenCard(
-                                            indexDeck,
-                                            2,
-                                            arrayListOf(card)
-                                        )
-                                    },
-                                    onDrag = {
-                                        if (onValidateMovement(indexDeck, indexOpenDeck)) {
-                                            indexDraggingDeck = indexDeck
-                                            topBoxOffset += it
-                                        }
+                deck.openCards.forEachIndexed { indexOpenDeck, card ->
+                    var topBoxOffset by remember { mutableStateOf(Offset(0f, 0f)) }
+                    Box(
+                        modifier = Modifier
+                            .width(CARD_WIDTH.dp)
+                            .fillMaxHeight()
+                            .padding(top = (marginIndexOpenArray * DELIMITER_CARD).dp)
+                            .offset {
+                                IntOffset(topBoxOffset.x.toInt(), topBoxOffset.y.toInt())
+                            }
+                            .onDrag(
+                                onDragEnd = {
+                                    topBoxOffset = Offset(0f, 0f)
+                                    onStopMovingOpenCard(
+                                        indexDeck,
+                                        2,
+                                        arrayListOf(card)
+                                    )
+                                },
+                                onDrag = {
+                                    if (onValidateMovement(indexDeck, indexOpenDeck)) {
+                                        indexDraggingDeck = indexDeck
+                                        topBoxOffset += it
                                     }
-                                )
-                        ) {
-                            CardOpenDraw(
-                                modifier = Modifier.fillMaxSize(),
-                                cardOpenUI = card.toCardUI()
+                                }
                             )
-                        }
-                        marginIndexOpenArray++
+                    ) {
+                        CardOpenDraw(
+                            modifier = Modifier.fillMaxSize(),
+                            cardOpenUI = card.toCardUI()
+                        )
                     }
+                    marginIndexOpenArray++
                 }
             }
         }
@@ -176,12 +171,11 @@ fun BottomField(
 fun AdditionalCard(
     modifier: Modifier = Modifier
 ) {
-    Canvas(modifier) {
-        drawCloseCard(
-            x = 0f,
-            y = 0f,
-            width = size.width,
-            height = size.height
-        )
-    }
+    Box(
+        modifier
+            .width(CARD_WIDTH.dp)
+            .fillMaxHeight()
+            .border(width = 2.dp, color = Color.Black)
+            .background(Color.Blue)
+    )
 }

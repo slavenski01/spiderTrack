@@ -5,36 +5,32 @@ import consts.CARDS_ON_SUIT
 import consts.CardSuits
 import consts.FIELDS_FOR_GAME
 import consts.NEED_DECKS_FOR_FINISH
-import consts.SUITS_NORMAL_LEVEL
 import data.models.Card
-import data.models.CurrentGameField
 import data.models.Deck
+import data.repository.DeckRepo
 import presentation.models.ForcingFromAdditional
 import presentation.models.Moving
 import presentation.models.UserTurn
-import presentation.providers.GameStateProvider
+import presentation.providers.MainState
 import utils.getCountCloseSlots
 import java.util.Stack
 
 class MainViewModel(
-    stateProvider: GameStateProvider
+    private val deckRepo: DeckRepo
 ) {
-    private var currentGameField = CurrentGameField(
-        listOf(),
-        listOf(),
-        SUITS_NORMAL_LEVEL,
-        0
+    private var currentGameField = deckRepo.getCurrentDeckState()
+
+    private var state = MainState(
+        gameField = currentGameField
     )
-
-    private var userTurnStack: Stack<UserTurn>? = null
-
-    private var gameStateProvider = stateProvider
 
     init {
         shuffleAndGetDeckState()
     }
 
-    fun getCurrentField() = gameStateProvider.gameField
+    private var userTurnStack: Stack<UserTurn>? = null
+
+    fun getCurrentState() = state
 
     fun shuffleAndGetDeckState() {
 
@@ -55,56 +51,115 @@ class MainViewModel(
         currentGameField = currentGameField.copy(
             decksInGame = createDecksForGame(allCardsList)
         )
-
-        gameStateProvider.gameField = currentGameField
+        updateState()
     }
 
-    fun isPossibleStartMove(deckPosition: Int, deckSubArrayIndex: Int): Boolean {
-        return currentGameField.decksInGame[deckPosition].openCards.last().size - 1 == deckSubArrayIndex
+    fun isPossibleStartMove(deckPosition: Int, indexOpenDeck: Int): Boolean {
+        return currentGameField.decksInGame[deckPosition].openCards.size - 1 == indexOpenDeck
     }
 
     fun moveCard(
-        targetArrayDeck: ArrayList<Card>,
+        cardsForMove: List<Card>,
         fromIndexDeck: Int,
         toIndexDeck: Int
     ) {
-        val deckAfterMoveToIndex = addCardsToDeckAndReturn(
-            arrayForAdd = targetArrayDeck,
+        val isPossibleMove = isPossibleMoveFromTo(
+            cardsForMove = cardsForMove,
             targetDeckIndex = toIndexDeck,
             isFromAdditional = false
         )
-        val deckAfterOpenCard = openOneCloseCardInDeck(fromIndexDeck)
 
-        val gameFieldDecks = mutableListOf<Deck>()
-        currentGameField.decksInGame.forEach { deckInGame ->
-            when (deckInGame.positionInGameField) {
-                deckAfterMoveToIndex.positionInGameField -> {
-                    gameFieldDecks.add(deckAfterMoveToIndex)
-                }
+        if (isPossibleMove) {
+            addCardsToDeckAndReturn(
+                cardsForAdd = cardsForMove,
+                targetDeckIndex = toIndexDeck
+            )
+            removeCardFromOpen(
+                cardForRemove = cardsForMove,
+                targetDeckIndex = fromIndexDeck
+            )
+        }
+        openOneCloseCardInDeck(fromIndexDeck)
+        updateState()
+    }
 
-                deckAfterOpenCard.positionInGameField -> {
-                    gameFieldDecks.add(deckAfterOpenCard)
-                }
+    private fun isPossibleMoveFromTo(
+        cardsForMove: List<Card>,
+        targetDeckIndex: Int,
+        isFromAdditional: Boolean,
 
-                else -> {
-                    gameFieldDecks.add(deckInGame)
-                }
+        ): Boolean {
+        val currentDeck = currentGameField.decksInGame[targetDeckIndex]
+
+        return when {
+            currentDeck.openCards.isEmpty() || isFromAdditional -> {
+                true
+            }
+
+            currentDeck.openCards.last().value - cardsForMove.first().value == 1 -> {
+                true
+            }
+
+            else -> false
+        }
+    }
+
+    private fun addCardsToDeckAndReturn(
+        cardsForAdd: List<Card>,
+        targetDeckIndex: Int
+    ) {
+        val currentDeck = currentGameField.decksInGame[targetDeckIndex]
+        val openDeck = currentDeck.openCards.toMutableList()
+
+        openDeck.addAll(cardsForAdd)
+
+        val decs = mutableListOf<Deck>()
+
+        for (i in 0 until currentGameField.decksInGame.size) {
+            if (i != targetDeckIndex) {
+                decs.add(currentGameField.decksInGame[i])
+            } else {
+                decs.add(
+                    currentDeck.copy(
+                        openCards = openDeck
+                    )
+                )
+            }
+        }
+
+        currentGameField = currentGameField.copy(
+            decksInGame = decs
+        )
+    }
+
+    private fun removeCardFromOpen(
+        targetDeckIndex: Int,
+        cardForRemove: List<Card>
+    ) {
+        val decksInGame = mutableListOf<Deck>()
+        val openCards = currentGameField.decksInGame[targetDeckIndex].openCards
+        val currentOpenCards = openCards.subList(
+            0,
+            openCards.size - cardForRemove.size
+        )
+
+        for (i in currentGameField.decksInGame.indices) {
+            if (i == targetDeckIndex) {
+                decksInGame.add(
+                    currentGameField.decksInGame[i].copy(openCards = currentOpenCards)
+                )
+            } else {
+                decksInGame.add(currentGameField.decksInGame[i])
             }
         }
         currentGameField = currentGameField.copy(
-            decksInGame = gameFieldDecks.toList()
+            decksInGame = decksInGame
         )
-        gameStateProvider.gameField = currentGameField
     }
 
     fun forcingAdditionalCards() {
         for (i in 0 until FIELDS_FOR_GAME) {
             val additionalCard = currentGameField.additionalDeck.last()
-            addCardsToDeckAndReturn(
-                arrayForAdd = arrayListOf(additionalCard),
-                targetDeckIndex = i,
-                isFromAdditional = true
-            )
             currentGameField = currentGameField.copy(
                 additionalDeck = currentGameField.additionalDeck.subList(
                     0,
@@ -123,7 +178,7 @@ class MainViewModel(
 
                 is Moving -> {
                     moveCard(
-                        targetArrayDeck = turn.cards,
+                        cardsForMove = turn.cards,
                         fromIndexDeck = turn.toIndex,
                         toIndexDeck = turn.fromIndex
                     )
@@ -140,7 +195,7 @@ class MainViewModel(
     private fun returnForcingAdditional() {
         val currentDeckList = mutableListOf<Deck>()
         for (i in 0 until FIELDS_FOR_GAME) {
-            val additionalCard = currentGameField.decksInGame[i].openCards.last().last()
+            val additionalCard = currentGameField.decksInGame[i].openCards.last()
             val additionalCardsList = currentGameField.additionalDeck.toMutableList()
             additionalCardsList.add(additionalCard)
 
@@ -160,22 +215,16 @@ class MainViewModel(
     }
 
     private fun removeLastCardAndReturnOpenCardsArray(
-        openCards: ArrayList<ArrayList<Card>>
-    ): ArrayList<ArrayList<Card>> {
-        val currentOpenCard = arrayListOf(arrayListOf<Card>())
-        if (openCards.last().size == 1) {
-            for (i in 0 until openCards.size - 1) {
-                currentOpenCard.add(openCards[i])
-            }
-        } else {
-            for (i in 0 until openCards.size) {
-                if (i == openCards.size - 1) {
-                    for (j in 0..openCards[i].size - 2) {
-                        currentOpenCard[i].add(openCards[i][j])
-                    }
-                } else {
+        openCards: List<Card>
+    ): List<Card> {
+        val currentOpenCard = arrayListOf<Card>()
+        for (i in openCards.indices) {
+            if (i == openCards.size - 1) {
+                for (j in 0..openCards.size - 2) {
                     currentOpenCard.add(openCards[i])
                 }
+            } else {
+                currentOpenCard.add(openCards[i])
             }
         }
         return currentOpenCard
@@ -216,7 +265,7 @@ class MainViewModel(
             }
             deck = deck.copy(closedCards = closeCardsCurrent)
 
-            deck = deck.copy(openCards = arrayListOf(arrayListOf(allCardsList.last())))
+            deck = deck.copy(openCards = listOf(allCardsList.last()))
             allCardsList.removeAt(allCardsList.lastIndex)
 
             deckList.add(deck)
@@ -247,43 +296,35 @@ class MainViewModel(
         return suitListForGameCards
     }
 
-    private fun addCardsToDeckAndReturn(
-        arrayForAdd: ArrayList<Card>,
-        targetDeckIndex: Int,
-        isFromAdditional: Boolean
-    ): Deck {
-        val currentDeck = currentGameField.decksInGame[targetDeckIndex]
-
-        when {
-            currentDeck.openCards.isEmpty() || isFromAdditional -> {
-                currentDeck.openCards.add(arrayForAdd)
-            }
-
-            currentDeck.openCards.last().last().value - arrayForAdd.first().value == 1 -> {
-                if (currentDeck.openCards.last().last().suit == arrayForAdd.first().suit) {
-                    currentDeck.openCards.last().addAll(arrayForAdd)
-                } else {
-                    currentDeck.openCards.add(arrayForAdd)
-                }
-            }
-        }
-
-        return currentDeck
-    }
-
-    private fun openOneCloseCardInDeck(indexDeck: Int): Deck {
+    private fun openOneCloseCardInDeck(indexDeck: Int) {
+        val decksInGame = mutableListOf<Deck>()
         var closedCards = currentGameField.decksInGame[indexDeck].closedCards
-        val openCards = currentGameField.decksInGame[indexDeck].openCards
+        val openCards = currentGameField.decksInGame[indexDeck].openCards.toMutableList()
 
         if (openCards.size == 0 && closedCards.isNotEmpty()) {
-            openCards.add(arrayListOf(closedCards.last()))
-            closedCards = closedCards.subList(0, closedCards.lastIndex - 1)
+            openCards.add(closedCards.last())
+            closedCards = closedCards.subList(0, closedCards.lastIndex)
         }
 
-        return Deck(
+        val newDeck = Deck(
             positionInGameField = indexDeck,
             closedCards = closedCards,
             openCards = openCards
         )
+
+        for (i in currentGameField.decksInGame.indices) {
+            if (i == indexDeck) {
+                decksInGame.add(newDeck)
+            } else {
+                decksInGame.add(currentGameField.decksInGame[i])
+            }
+        }
+        currentGameField = currentGameField.copy(
+            decksInGame = decksInGame
+        )
+    }
+
+    private fun updateState() {
+        state = MainState(gameField = currentGameField)
     }
 }

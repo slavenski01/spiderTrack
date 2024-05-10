@@ -4,6 +4,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.Button
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.DpSize
@@ -15,36 +18,39 @@ import consts.CARD_WIDTH
 import data.repository.DeckRepository
 import data.source.Local
 import presentation.MainViewModel
-import presentation.providers.GameStateProvider
 import presentation.ui.GameField
 
 @Composable
 @Preview
 fun App(mainViewModel: MainViewModel) {
     Column {
+        var state by mutableStateOf(mainViewModel.getCurrentState())
+
         Button(
             modifier = Modifier.align(Alignment.CenterHorizontally),
             onClick = {
                 mainViewModel.shuffleAndGetDeckState()
+                state = mainViewModel.getCurrentState()
             }
         ) {
             Text("Новая игра")
         }
         GameField(
             modifier = Modifier.fillMaxWidth(),
-            currentGameField = mainViewModel.getCurrentField(),
+            currentGameField = state.gameField,
             onValidateMovement = { indexGameDeck, indexOpenDeck ->
                 mainViewModel.isPossibleStartMove(
                     deckPosition = indexGameDeck,
-                    deckSubArrayIndex = indexOpenDeck
+                    indexOpenDeck = indexOpenDeck
                 )
             },
             onStopMovingOpenCard = { fromIndex, toIndex, cardsArray ->
                 mainViewModel.moveCard(
-                    targetArrayDeck = cardsArray,
+                    cardsForMove = cardsArray,
                     fromIndexDeck = fromIndex,
                     toIndexDeck = toIndex
                 )
+                state = mainViewModel.getCurrentState()
             }
         )
     }
@@ -62,10 +68,9 @@ fun main() = application {
             )
         }
     ) {
+        val mainViewModel = MainViewModel(DeckRepository(Local()))
         App(
-            MainViewModel(
-                GameStateProvider(DeckRepository(Local()))
-            )
+            mainViewModel
         )
     }
 }
