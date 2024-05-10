@@ -25,11 +25,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import consts.CARD_HEIGHT
 import consts.CARD_WIDTH
 import consts.DELIMITER_CARD
+import consts.FIELDS_FOR_GAME
 import consts.MARGIN_CARD
 import consts.NEED_DECKS_FOR_FINISH
 import data.models.Card
@@ -96,11 +99,11 @@ fun BottomField(
     //fromDeckIndex, toDeckIndex, cards for movement
     onStopMovingOpenCard: (Int, Int, ArrayList<Card>) -> Unit,
 ) {
+    var indexDraggingDeck by remember { mutableStateOf(0) }
+    val decsCords by remember { mutableStateOf(mutableListOf<Pair<Offset, Int>>()) }
     Row(
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        var indexDraggingDeck by remember { mutableStateOf(0) }
-
         currentGameField.decksInGame.forEachIndexed { indexDeck, deck ->
             var deckHeightIndex = 0
             deckHeightIndex += deck.closedCards.size
@@ -113,9 +116,16 @@ fun BottomField(
                     .let {
                         if (indexDraggingDeck == indexDeck) it.bringToFront() else it
                     }
+                    .onGloballyPositioned { position ->
+                        val x = position.positionInWindow().x
+                        val y = position.positionInWindow().y
+                        if (decsCords.size < FIELDS_FOR_GAME) {
+                            decsCords.add(Pair(Offset(x, y), indexDeck))
+                        }
+                    }
             ) {
                 var marginIndex = 0
-                deck.closedCards.forEachIndexed { index, card ->
+                deck.closedCards.forEachIndexed { index, _ ->
                     Box(
                         Modifier
                             .width(CARD_WIDTH.dp)
@@ -140,10 +150,18 @@ fun BottomField(
                             }
                             .onDrag(
                                 onDragEnd = {
+                                    val cordsToX = decsCords[indexDeck].first.x + topBoxOffset.x
+                                    var indexToDeck = 0
+                                    println(decsCords.toString())
+                                    for (i in 0..decsCords.size - 2) {
+                                        if (cordsToX in decsCords[i].first.x..decsCords[i + 1].first.x) {
+                                            indexToDeck = decsCords[i].second
+                                        }
+                                    }
                                     topBoxOffset = Offset(0f, 0f)
                                     onStopMovingOpenCard(
                                         indexDeck,
-                                        2,
+                                        indexToDeck,
                                         arrayListOf(card)
                                     )
                                 },

@@ -12,8 +12,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
-import androidx.compose.ui.window.WindowState
 import androidx.compose.ui.window.application
+import androidx.compose.ui.window.rememberWindowState
 import consts.CARD_WIDTH
 import data.repository.DeckRepository
 import data.source.Local
@@ -57,11 +57,12 @@ fun App(mainViewModel: MainViewModel) {
 }
 
 fun main() = application {
+    val windowState = rememberWindowState()
     Window(
         title = "SpiderTrack",
         onCloseRequest = ::exitApplication,
         resizable = false,
-        state = WindowState().apply {
+        state = windowState.apply {
             size = DpSize(
                 (CARD_WIDTH * 14).dp,
                 700.dp
