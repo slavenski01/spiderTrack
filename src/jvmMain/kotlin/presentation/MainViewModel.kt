@@ -59,11 +59,13 @@ class MainViewModel(
         val openCards = currentDeck.openCards
         val firstCardDragging = openCards[indexOpenDeckCard]
 
+        var tempCard = firstCardDragging
         for (i in (indexOpenDeckCard + 1) until openCards.size) {
             if (
-                firstCardDragging.suit != openCards[i].suit
-                || (firstCardDragging.value - openCards[i].value) != 1
+                tempCard.suit != openCards[i].suit
+                || (tempCard.value - openCards[i].value) != 1
             ) return false
+            tempCard = openCards[i]
         }
         return true
     }

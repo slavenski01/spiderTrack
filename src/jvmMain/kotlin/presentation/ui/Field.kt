@@ -46,7 +46,7 @@ fun GameField(
     modifier: Modifier,
     currentGameField: CurrentGameField,
     onValidateMovement: (Int, Int) -> Boolean,
-    onStopMovingOpenCard: (Int, Int, ArrayList<Card>) -> Unit
+    onStopMovingOpenCard: (Int, Int, List<Card>) -> Unit
 ) {
     Column(modifier) {
         TopField(Modifier.fillMaxWidth().height(CARD_HEIGHT.dp).padding(MARGIN_CARD.dp))
@@ -97,10 +97,11 @@ fun BottomField(
     currentGameField: CurrentGameField,
     onValidateMovement: (Int, Int) -> Boolean,
     //fromDeckIndex, toDeckIndex, cards for movement
-    onStopMovingOpenCard: (Int, Int, ArrayList<Card>) -> Unit,
+    onStopMovingOpenCard: (Int, Int, List<Card>) -> Unit,
 ) {
     var indexDraggingDeck by remember { mutableStateOf(0) }
-    val decsCords by remember { mutableStateOf(mutableListOf<Offset>()) }
+    val dekcInGamePositionCords by remember { mutableStateOf(mutableListOf<Offset>()) }
+
     Row(
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
@@ -119,8 +120,8 @@ fun BottomField(
                     .onGloballyPositioned { position ->
                         val x = position.positionInWindow().x
                         val y = position.positionInWindow().y
-                        if (decsCords.size < FIELDS_FOR_GAME) {
-                            decsCords.add(Offset(x, y))
+                        if (dekcInGamePositionCords.size < FIELDS_FOR_GAME) {
+                            dekcInGamePositionCords.add(Offset(x, y))
                         }
                     }
             ) {
@@ -138,43 +139,61 @@ fun BottomField(
                 }
 
                 var marginIndexOpenArray = marginIndex
+                var topBoxOffset by remember { mutableStateOf(Pair(0, Offset(0f, 0f))) }
                 deck.openCards.forEachIndexed { indexOpenDeckCard, card ->
-                    var topBoxOffset by remember { mutableStateOf(Offset(0f, 0f)) }
                     Box(
                         modifier = Modifier
                             .width(CARD_WIDTH.dp)
                             .fillMaxHeight()
                             .padding(top = (marginIndexOpenArray * DELIMITER_CARD).dp)
                             .offset {
-                                IntOffset(topBoxOffset.x.toInt(), topBoxOffset.y.toInt())
+                                if (topBoxOffset.first <= indexOpenDeckCard) {
+                                    IntOffset(
+                                        topBoxOffset.second.x.toInt(),
+                                        topBoxOffset.second.y.toInt()
+                                    )
+                                } else {
+                                    IntOffset(0, 0)
+                                }
                             }
                             .onDrag(
+                                onDrag = {
+                                    if (onValidateMovement(indexDeck, indexOpenDeckCard)) {
+                                        indexDraggingDeck = indexDeck
+                                        topBoxOffset = Pair(
+                                            indexOpenDeckCard,
+                                            Offset(
+                                                it.x + topBoxOffset.second.x,
+                                                it.y + topBoxOffset.second.y
+                                            )
+                                        )
+                                    }
+                                },
                                 onDragEnd = {
-                                    val cordsToX = decsCords[indexDeck].x + topBoxOffset.x
+                                    val cordsToX =
+                                        dekcInGamePositionCords[indexDeck].x + topBoxOffset.second.x
                                     var indexToDeck = 0
 
-                                    if (cordsToX > decsCords.last().x) {
-                                        indexToDeck = decsCords.lastIndex
+                                    if (cordsToX > dekcInGamePositionCords.last().x) {
+                                        indexToDeck = dekcInGamePositionCords.lastIndex
                                     } else {
-                                        for (i in 0..decsCords.size - 2) {
-                                            if (cordsToX in decsCords[i].x..decsCords[i + 1].x) {
+                                        for (i in 0..dekcInGamePositionCords.size - 2) {
+                                            if (cordsToX in dekcInGamePositionCords[i].x..dekcInGamePositionCords[i + 1].x) {
                                                 indexToDeck = i
                                             }
                                         }
                                     }
-
-                                    topBoxOffset = Offset(0f, 0f)
+                                    val targetListForMove = mutableListOf<Card>()
+                                    for (i in indexOpenDeckCard until deck.openCards.size) {
+                                        targetListForMove.add(deck.openCards[i])
+                                    }
                                     onStopMovingOpenCard(
                                         indexDeck,
                                         indexToDeck,
-                                        arrayListOf(card)
+                                        targetListForMove.toList()
                                     )
-                                },
-                                onDrag = {
-                                    if (onValidateMovement(indexDeck, indexOpenDeckCard)) {
-                                        indexDraggingDeck = indexDeck
-                                        topBoxOffset += it
-                                    }
+                                    targetListForMove.clear()
+                                    topBoxOffset = Pair(0, Offset(0f, 0f))
                                 }
                             )
                     ) {

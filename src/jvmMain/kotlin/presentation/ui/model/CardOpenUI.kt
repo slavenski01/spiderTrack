@@ -1,11 +1,18 @@
 package presentation.ui.model
 
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import consts.CardSuits
 
 data class CardOpenUI(
     val value: Int,
     val suit: CardSuits
+)
+
+data class DraggingItem(
+    val indexInDeck: Int,
+    val indexInOpenCards: Int,
+    var offset: Offset
 )
 
 fun CardOpenUI.valueToString() =
