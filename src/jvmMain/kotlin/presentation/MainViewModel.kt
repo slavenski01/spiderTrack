@@ -54,8 +54,18 @@ class MainViewModel(
         updateState()
     }
 
-    fun isPossibleStartMove(deckPosition: Int, indexOpenDeck: Int): Boolean {
-        return currentGameField.decksInGame[deckPosition].openCards.size - 1 == indexOpenDeck
+    fun isPossibleStartMove(deckPosition: Int, indexOpenDeckCard: Int): Boolean {
+        val currentDeck = currentGameField.decksInGame[deckPosition]
+        val openCards = currentDeck.openCards
+        val firstCardDragging = openCards[indexOpenDeckCard]
+
+        for (i in (indexOpenDeckCard + 1) until openCards.size) {
+            if (
+                firstCardDragging.suit != openCards[i].suit
+                || (firstCardDragging.value - openCards[i].value) != 1
+            ) return false
+        }
+        return true
     }
 
     fun moveCard(

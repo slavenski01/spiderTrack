@@ -138,7 +138,7 @@ fun BottomField(
                 }
 
                 var marginIndexOpenArray = marginIndex
-                deck.openCards.forEachIndexed { indexOpenDeck, card ->
+                deck.openCards.forEachIndexed { indexOpenDeckCard, card ->
                     var topBoxOffset by remember { mutableStateOf(Offset(0f, 0f)) }
                     Box(
                         modifier = Modifier
@@ -171,7 +171,7 @@ fun BottomField(
                                     )
                                 },
                                 onDrag = {
-                                    if (onValidateMovement(indexDeck, indexOpenDeck)) {
+                                    if (onValidateMovement(indexDeck, indexOpenDeckCard)) {
                                         indexDraggingDeck = indexDeck
                                         topBoxOffset += it
                                     }

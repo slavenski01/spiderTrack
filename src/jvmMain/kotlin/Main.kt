@@ -41,7 +41,7 @@ fun App(mainViewModel: MainViewModel) {
             onValidateMovement = { indexGameDeck, indexOpenDeck ->
                 mainViewModel.isPossibleStartMove(
                     deckPosition = indexGameDeck,
-                    indexOpenDeck = indexOpenDeck
+                    indexOpenDeckCard = indexOpenDeck
                 )
             },
             onStopMovingOpenCard = { fromIndex, toIndex, cardsArray ->
