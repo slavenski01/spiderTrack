@@ -125,7 +125,7 @@ fun BottomField(
                     }
             ) {
                 var marginIndex = 0
-                deck.closedCards.forEachIndexed { index, _ ->
+                deck.closedCards.forEachIndexed { index, card ->
                     Box(
                         Modifier
                             .width(CARD_WIDTH.dp)
@@ -152,12 +152,17 @@ fun BottomField(
                                 onDragEnd = {
                                     val cordsToX = decsCords[indexDeck].first.x + topBoxOffset.x
                                     var indexToDeck = 0
-                                    println(decsCords.toString())
-                                    for (i in 0..decsCords.size - 2) {
-                                        if (cordsToX in decsCords[i].first.x..decsCords[i + 1].first.x) {
-                                            indexToDeck = decsCords[i].second
+
+                                    if (cordsToX > decsCords.last().first.x) {
+                                        indexToDeck = decsCords.last().second
+                                    } else {
+                                        for (i in 0..decsCords.size - 2) {
+                                            if (cordsToX in decsCords[i].first.x..decsCords[i + 1].first.x) {
+                                                indexToDeck = decsCords[i].second
+                                            }
                                         }
                                     }
+
                                     topBoxOffset = Offset(0f, 0f)
                                     onStopMovingOpenCard(
                                         indexDeck,
