@@ -1,6 +1,6 @@
 package data.source
 
-import consts.SUITS_NORMAL_LEVEL
+import consts.SUITS_EASY_LEVEL
 import data.models.CurrentGameField
 
 class Local() {
@@ -8,7 +8,7 @@ class Local() {
     private var currentGameField = CurrentGameField(
         additionalDeck = listOf(),
         decksInGame = listOf(),
-        suitsInGame = SUITS_NORMAL_LEVEL,
+        suitsInGame = SUITS_EASY_LEVEL,
         completableDecksCount = 0
     )
 

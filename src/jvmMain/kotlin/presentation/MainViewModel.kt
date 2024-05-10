@@ -77,8 +77,7 @@ class MainViewModel(
     ) {
         val isPossibleMove = isPossibleMoveFromTo(
             cardsForMove = cardsForMove,
-            targetDeckIndex = toIndexDeck,
-            isFromAdditional = false
+            targetDeckIndex = toIndexDeck
         )
 
         if (isPossibleMove) {
@@ -86,25 +85,25 @@ class MainViewModel(
                 cardsForAdd = cardsForMove,
                 targetDeckIndex = toIndexDeck
             )
+            checkCompleteOpenDeckAndUpdate(targetDeckIndex = toIndexDeck)
             removeCardFromOpen(
                 cardForRemove = cardsForMove,
                 targetDeckIndex = fromIndexDeck
             )
+            openOneCloseCardInDeck(fromIndexDeck)
+            updateState()
         }
-        openOneCloseCardInDeck(fromIndexDeck)
-        updateState()
     }
 
     private fun isPossibleMoveFromTo(
         cardsForMove: List<Card>,
         targetDeckIndex: Int,
-        isFromAdditional: Boolean,
 
         ): Boolean {
         val currentDeck = currentGameField.decksInGame[targetDeckIndex]
 
         return when {
-            currentDeck.openCards.isEmpty() || isFromAdditional -> {
+            currentDeck.openCards.isEmpty() -> {
                 true
             }
 
@@ -169,17 +168,34 @@ class MainViewModel(
         )
     }
 
-    fun forcingAdditionalCards() {
-        for (i in 0 until FIELDS_FOR_GAME) {
-            val additionalCard = currentGameField.additionalDeck.last()
-            currentGameField = currentGameField.copy(
-                additionalDeck = currentGameField.additionalDeck.subList(
-                    0,
-                    currentGameField.additionalDeck.lastIndex - 1
+    fun forcingAdditionalCardsAndCheckComplete() {
+        if (validateForcing()) {
+            val decks = mutableListOf<Deck>()
+            val tempAdditionalDeck = currentGameField.additionalDeck.toMutableList()
+            for (i in 0 until FIELDS_FOR_GAME) {
+                val openCards = currentGameField.decksInGame[i].openCards.toMutableList()
+                openCards.add(tempAdditionalDeck.last())
+                decks.add(
+                    currentGameField.decksInGame[i].copy(
+                        openCards = openCards
+                    )
                 )
+                tempAdditionalDeck.removeLast()
+            }
+            currentGameField = currentGameField.copy(
+                decksInGame = decks.toList(),
+                additionalDeck = tempAdditionalDeck.toList()
             )
+
+            currentGameField.decksInGame.forEachIndexed { index, deck ->
+                checkCompleteOpenDeckAndUpdate(targetDeckIndex = index)
+            }
+            updateState()
         }
     }
+
+    private fun validateForcing(): Boolean =
+        currentGameField.decksInGame.none { it.openCards.isEmpty() }
 
     fun cancelTurn() {
         userTurnStack?.let {
@@ -199,9 +215,56 @@ class MainViewModel(
         }
     }
 
-    private fun completeDeck(cardsForComplete: ArrayList<Card>) {
-        currentGameField =
-            currentGameField.copy(completableDecksCount = currentGameField.completableDecksCount + 1)
+    private fun checkCompleteOpenDeckAndUpdate(
+        targetDeckIndex: Int
+    ) {
+        val currentDeck = currentGameField.decksInGame[targetDeckIndex]
+        val openDeck = currentDeck.openCards.toMutableList()
+        var countSequence = 0
+        var isNeedComplete = false
+
+        if (openDeck.size >= CARDS_ON_SUIT) {
+            val openCardReversed = openDeck.reversed()
+            var tempCard = openCardReversed[0]
+            for (i in 1 until openCardReversed.size) {
+                if (openCardReversed[i].value - tempCard.value == 1) {
+                    tempCard = openCardReversed[i]
+                    countSequence++
+                    if (countSequence == CARDS_ON_SUIT - 1) isNeedComplete = true
+                } else {
+                    break
+                }
+            }
+        }
+        println(isNeedComplete)
+        val decs = mutableListOf<Deck>()
+        for (i in 0 until currentGameField.decksInGame.size) {
+            if (i != targetDeckIndex) {
+                decs.add(currentGameField.decksInGame[i])
+            } else {
+                decs.add(
+                    currentDeck.copy(
+                        openCards = if (isNeedComplete) {
+                            openDeck.subList(
+                                0,
+                                openDeck.size - CARDS_ON_SUIT
+                            )
+                        } else {
+                            openDeck
+                        }
+                    )
+                )
+            }
+        }
+
+        currentGameField = currentGameField.copy(
+            decksInGame = decs,
+            completableDecksCount = if (countSequence == CARDS_ON_SUIT - 1) {
+                currentGameField.completableDecksCount
+            } else {
+                currentGameField.completableDecksCount + 1
+            }
+        )
     }
 
     private fun returnForcingAdditional() {

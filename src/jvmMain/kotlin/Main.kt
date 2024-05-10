@@ -38,6 +38,10 @@ fun App(mainViewModel: MainViewModel) {
         GameField(
             modifier = Modifier.fillMaxWidth(),
             currentGameField = state.gameField,
+            onClickAdditionalDeck = {
+                mainViewModel.forcingAdditionalCardsAndCheckComplete()
+                state = mainViewModel.getCurrentState()
+            },
             onValidateMovement = { indexGameDeck, indexOpenDeck ->
                 mainViewModel.isPossibleStartMove(
                     deckPosition = indexGameDeck,
@@ -65,7 +69,7 @@ fun main() = application {
         state = windowState.apply {
             size = DpSize(
                 (CARD_WIDTH * 14).dp,
-                700.dp
+                970.dp
             )
         }
     ) {

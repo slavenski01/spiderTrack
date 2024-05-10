@@ -1,6 +1,5 @@
 package presentation.ui
 
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -17,6 +16,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.onClick
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -38,18 +38,23 @@ import consts.NEED_DECKS_FOR_FINISH
 import data.models.Card
 import data.models.CurrentGameField
 import presentation.ui.draws.CardOpenDraw
-import presentation.ui.draws.drawEmptyCard
 import utils.bringToFront
 
 @Composable
 fun GameField(
     modifier: Modifier,
     currentGameField: CurrentGameField,
+    onClickAdditionalDeck: () -> Unit,
     onValidateMovement: (Int, Int) -> Boolean,
     onStopMovingOpenCard: (Int, Int, List<Card>) -> Unit
 ) {
+    val countComplete by mutableStateOf(currentGameField.completableDecksCount)
     Column(modifier) {
-        TopField(Modifier.fillMaxWidth().height(CARD_HEIGHT.dp).padding(MARGIN_CARD.dp))
+        TopField(
+            modifier = Modifier.fillMaxWidth().height(CARD_HEIGHT.dp).padding(MARGIN_CARD.dp),
+            countComplete = countComplete,
+            onClickAdditionalDeck = onClickAdditionalDeck
+        )
         BottomField(
             modifier = Modifier.padding(MARGIN_CARD.dp),
             currentGameField = currentGameField,
@@ -59,9 +64,12 @@ fun GameField(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun TopField(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    countComplete: Int,
+    onClickAdditionalDeck: () -> Unit
 ) {
     Row(
         modifier = modifier,
@@ -71,6 +79,7 @@ fun TopField(
             modifier = Modifier
                 .width(CARD_WIDTH.dp)
                 .height(CARD_HEIGHT.dp)
+                .onClick { onClickAdditionalDeck() }
         )
         Spacer(
             modifier = Modifier
@@ -79,13 +88,14 @@ fun TopField(
         )
 
         for (i in 0 until NEED_DECKS_FOR_FINISH) {
-            Canvas(
+            Box(
                 Modifier
                     .width(CARD_WIDTH.dp)
-                    .height(CARD_HEIGHT.dp)
-            ) {
-                drawEmptyCard(0f, 0f, size.width, size.height)
-            }
+                    .fillMaxHeight()
+                    .padding(top = (DELIMITER_CARD).dp)
+                    .border(width = 2.dp, color = Color.Black)
+                    .background(if (i < countComplete) Color.Blue else Color.White)
+            )
         }
     }
 }
@@ -187,6 +197,7 @@ fun BottomField(
                                     for (i in indexOpenDeckCard until deck.openCards.size) {
                                         targetListForMove.add(deck.openCards[i])
                                     }
+
                                     onStopMovingOpenCard(
                                         indexDeck,
                                         indexToDeck,
