@@ -25,7 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import consts.CARD_HEIGHT
 import consts.CARD_WIDTH
-import consts.CardSuits
+import consts.CardSuit
 import data.models.Card
 import data.models.getColorText
 import data.models.valueToString
@@ -98,12 +98,12 @@ private fun DrawScope.drawMiniSuit(
     y: Float,
     width: Float,
     height: Float,
-    suit: CardSuits
+    suit: CardSuit
 ) {
     val paddingBorder = 5.dp
 
     when (suit) {
-        CardSuits.SUIT_CROSS -> {
+        CardSuit.SUIT_CROSS -> {
             drawCrossSuit(
                 x = x + paddingBorder.value,
                 y = y + paddingBorder.value,
@@ -112,7 +112,7 @@ private fun DrawScope.drawMiniSuit(
             )
         }
 
-        CardSuits.SUIT_HEART -> {
+        CardSuit.SUIT_HEART -> {
             drawHeartSuit(
                 x = x + paddingBorder.value,
                 y = y + paddingBorder.value,
@@ -121,7 +121,7 @@ private fun DrawScope.drawMiniSuit(
             )
         }
 
-        CardSuits.SUIT_DIAMONDS -> {
+        CardSuit.SUIT_DIAMONDS -> {
             drawDiamondsSuit(
                 x = x + paddingBorder.value,
                 y = y + paddingBorder.value,
@@ -130,7 +130,7 @@ private fun DrawScope.drawMiniSuit(
             )
         }
 
-        CardSuits.SUIT_SPADES -> {
+        CardSuit.SUIT_SPADES -> {
             drawSpadesSuit(
                 x = x + paddingBorder.value,
                 y = y + paddingBorder.value,

@@ -1,6 +1,8 @@
 import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Button
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -23,19 +25,35 @@ import presentation.ui.GameField
 
 @Composable
 @Preview
-fun App(mainViewModel: MainViewModel) {
+fun App(
+    mainViewModel: MainViewModel
+) {
     Column {
         var state by remember { mutableStateOf(mainViewModel.getCurrentState()) }
 
-        Button(
-            modifier = Modifier.align(Alignment.CenterHorizontally),
-            onClick = {
-                mainViewModel.shuffleAndGetDeckState()
-                state = mainViewModel.getCurrentState()
-            }
+        Row(
+            modifier = Modifier.align(Alignment.CenterHorizontally)
         ) {
-            Text("Новая игра")
+            Button(
+                modifier = Modifier.padding(horizontal = 20.dp),
+                onClick = {
+                    mainViewModel.cancelTurn()
+                    state = mainViewModel.getCurrentState()
+                }
+            ) {
+                Text("Отменить ход")
+            }
+            Button(
+                modifier = Modifier.padding(horizontal = 20.dp),
+                onClick = {
+                    mainViewModel.shuffleAndGetDeckState()
+                    state = mainViewModel.getCurrentState()
+                }
+            ) {
+                Text("Новая игра")
+            }
         }
+
         GameField(
             modifier = Modifier.fillMaxWidth(),
             currentGameField = state.gameField,
@@ -63,6 +81,7 @@ fun App(mainViewModel: MainViewModel) {
 
 fun main() = application {
     val windowState = rememberWindowState()
+    val mainViewModel = MainViewModel(DeckRepository(Local()))
     Window(
         title = "SpiderTrack",
         onCloseRequest = ::exitApplication,
@@ -74,9 +93,6 @@ fun main() = application {
             )
         }
     ) {
-        val mainViewModel = MainViewModel(DeckRepository(Local()))
-        App(
-            mainViewModel
-        )
+        App(mainViewModel)
     }
 }

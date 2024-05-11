@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.onClick
+import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -27,8 +28,11 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInWindow
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import consts.CARD_HEIGHT
 import consts.CARD_WIDTH
 import consts.DELIMITER_CARD
@@ -52,6 +56,7 @@ fun GameField(
         TopField(
             modifier = Modifier.fillMaxWidth().height(CARD_HEIGHT.dp).padding(MARGIN_CARD.dp),
             countComplete = currentGameField.completableDecksCount,
+            countAdditional = currentGameField.additionalDeck.size / FIELDS_FOR_GAME,
             onClickAdditionalDeck = onClickAdditionalDeck
         )
         BottomField(
@@ -68,18 +73,23 @@ fun GameField(
 fun TopField(
     modifier: Modifier = Modifier,
     countComplete: Int,
+    countAdditional: Int,
     onClickAdditionalDeck: () -> Unit
 ) {
     Row(
         modifier = modifier,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        AdditionalCard(
-            modifier = Modifier
-                .width(CARD_WIDTH.dp)
-                .height(CARD_HEIGHT.dp)
-                .onClick { onClickAdditionalDeck() }
-        )
+        if (countAdditional > 0) {
+            AdditionalCard(
+                modifier = Modifier
+                    .width(CARD_WIDTH.dp)
+                    .height(CARD_HEIGHT.dp)
+                    .onClick { onClickAdditionalDeck() },
+                countAdditional = countAdditional
+            )
+        }
+
         Spacer(
             modifier = Modifier
                 .width(CARD_WIDTH.dp)
@@ -231,7 +241,8 @@ fun BottomField(
 
 @Composable
 fun AdditionalCard(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    countAdditional: Int
 ) {
     Box(
         modifier
@@ -239,5 +250,12 @@ fun AdditionalCard(
             .fillMaxHeight()
             .border(width = 2.dp, color = Color.Black)
             .background(Color.Blue)
-    )
+    ) {
+        Text(
+            modifier = Modifier.fillMaxSize(),
+            text = countAdditional.toString(),
+            fontSize = 20.sp,
+            style = TextStyle(textAlign = TextAlign.Center),
+        )
+    }
 }

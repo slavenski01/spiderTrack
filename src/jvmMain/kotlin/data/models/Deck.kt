@@ -1,7 +1,7 @@
 package data.models
 
 import androidx.compose.ui.graphics.Color
-import consts.CardSuits
+import consts.CardSuit
 
 data class Deck(
     val positionInGameField: Int,
@@ -11,7 +11,7 @@ data class Deck(
 
 data class Card(
     val value: Int,
-    val suit: CardSuits
+    val suit: CardSuit
 )
 
 fun Card.valueToString() =
@@ -26,6 +26,6 @@ fun Card.valueToString() =
 
 fun Card.getColorText() =
     when (this.suit) {
-        CardSuits.SUIT_CROSS, CardSuits.SUIT_SPADES -> Color.Black
-        CardSuits.SUIT_HEART, CardSuits.SUIT_DIAMONDS -> Color.Red
+        CardSuit.SUIT_CROSS, CardSuit.SUIT_SPADES -> Color.Black
+        CardSuit.SUIT_HEART, CardSuit.SUIT_DIAMONDS -> Color.Red
     }
