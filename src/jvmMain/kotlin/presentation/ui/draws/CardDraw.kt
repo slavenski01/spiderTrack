@@ -26,14 +26,14 @@ import androidx.compose.ui.unit.sp
 import consts.CARD_HEIGHT
 import consts.CARD_WIDTH
 import consts.CardSuits
-import presentation.ui.model.CardOpenUI
-import presentation.ui.model.getColorText
-import presentation.ui.model.valueToString
+import data.models.Card
+import data.models.getColorText
+import data.models.valueToString
 
 @Composable
 fun CardOpenDraw(
     modifier: Modifier,
-    cardOpenUI: CardOpenUI
+    card: Card
 ) {
     Box(
         modifier = modifier
@@ -49,19 +49,19 @@ fun CardOpenDraw(
                         .width((CARD_WIDTH / 4).dp)
                         .height((CARD_HEIGHT / 5).dp)
                 ) {
-                    drawMiniSuit(0f, 0f, size.width, size.height, suit = cardOpenUI.suit)
+                    drawMiniSuit(0f, 0f, size.width, size.height, suit = card.suit)
                 }
                 Text(
-                    text = cardOpenUI.valueToString(),
-                    style = TextStyle(color = cardOpenUI.getColorText()),
+                    text = card.valueToString(),
+                    style = TextStyle(color = card.getColorText()),
                     fontSize = 16.sp
                 )
             }
             Text(
                 modifier = Modifier.fillMaxWidth(),
-                text = cardOpenUI.valueToString(),
+                text = card.valueToString(),
                 style = TextStyle(
-                    color = cardOpenUI.getColorText(),
+                    color = card.getColorText(),
                     textAlign = TextAlign.Center
                 ),
                 fontSize = 40.sp

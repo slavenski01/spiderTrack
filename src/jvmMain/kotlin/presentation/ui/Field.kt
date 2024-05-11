@@ -219,7 +219,7 @@ fun BottomField(
                     ) {
                         CardOpenDraw(
                             modifier = Modifier.fillMaxSize(),
-                            cardOpenUI = card.toCardUI()
+                            card = card
                         )
                     }
                     marginIndexOpenArray++
