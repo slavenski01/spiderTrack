@@ -386,7 +386,10 @@ class MainViewModel(
             }
         }
 
-        currentGameField = currentGameField.copy(decksInGame = decs)
+        currentGameField = currentGameField.copy(
+            decksInGame = decs,
+            completableDecksCount = currentGameField.completableDecksCount - 1
+        )
     }
 
     private fun removeCardFromOpen(
