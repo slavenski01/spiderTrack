@@ -130,6 +130,52 @@ class MainViewModel(
         }
     }
 
+    private fun isPossibleMoveFromTo(
+        cardsForMove: List<Card>,
+        targetDeckIndex: Int,
+
+        ): Boolean {
+        val currentDeck = currentGameField.decksInGame[targetDeckIndex]
+
+        return when {
+            currentDeck.openCards.isEmpty() -> {
+                true
+            }
+
+            currentDeck.openCards.last().value - cardsForMove.first().value == 1 -> {
+                true
+            }
+
+            else -> false
+        }
+    }
+
+    private fun addCardsToDeckAndReturn(
+        cardsForAdd: List<Card>,
+        targetDeckIndex: Int
+    ) {
+        val currentDeck = currentGameField.decksInGame[targetDeckIndex]
+        val openDeck = currentDeck.openCards.toMutableList()
+
+        openDeck.addAll(cardsForAdd)
+
+        val decs = mutableListOf<Deck>()
+
+        for (i in 0 until currentGameField.decksInGame.size) {
+            if (i != targetDeckIndex) {
+                decs.add(currentGameField.decksInGame[i])
+            } else {
+                decs.add(
+                    currentDeck.copy(
+                        openCards = openDeck
+                    )
+                )
+            }
+        }
+
+        currentGameField = currentGameField.copy(decksInGame = decs)
+    }
+
     fun forcingAdditionalCardsAndCheckComplete() {
         if (validateForcing()) {
             val decks = mutableListOf<Deck>()
@@ -159,6 +205,86 @@ class MainViewModel(
             )
             updateState()
         }
+    }
+
+    private fun checkCompleteOpenDeckAndUpdate(
+        targetDeckIndex: Int
+    ) {
+        val currentDeck = currentGameField.decksInGame[targetDeckIndex]
+        val openDeck = currentDeck.openCards.toMutableList()
+        var countSequence = 0
+        var isNeedComplete = false
+
+        if (openDeck.size >= CARDS_ON_SUIT) {
+            val openCardReversed = openDeck.reversed()
+            var tempCard = openCardReversed[0]
+            for (i in 1 until openCardReversed.size) {
+                if (openCardReversed[i].value - tempCard.value == 1) {
+                    tempCard = openCardReversed[i]
+                    countSequence++
+                    if (countSequence == CARDS_ON_SUIT - 1) isNeedComplete = true
+                } else {
+                    break
+                }
+            }
+        }
+
+        val decs = mutableListOf<Deck>()
+        for (i in 0 until currentGameField.decksInGame.size) {
+            if (i != targetDeckIndex) {
+                decs.add(currentGameField.decksInGame[i])
+            } else {
+                decs.add(
+                    currentDeck.copy(
+                        openCards = if (isNeedComplete) {
+                            openDeck.subList(
+                                0,
+                                openDeck.size - CARDS_ON_SUIT
+                            )
+                        } else {
+                            openDeck
+                        }
+                    )
+                )
+            }
+        }
+
+        currentGameField = currentGameField.copy(
+            decksInGame = decs,
+            completableDecksCount = if (countSequence == CARDS_ON_SUIT - 1) {
+                currentGameField.completableDecksCount + 1
+            } else {
+                currentGameField.completableDecksCount
+            }
+        )
+    }
+
+    private fun openOneCloseCardInDeck(indexDeck: Int) {
+        val decksInGame = mutableListOf<Deck>()
+        var closedCards = currentGameField.decksInGame[indexDeck].closedCards
+        val openCards = currentGameField.decksInGame[indexDeck].openCards.toMutableList()
+
+        if (openCards.size == 0 && closedCards.isNotEmpty()) {
+            openCards.add(closedCards.last())
+            closedCards = closedCards.subList(0, closedCards.lastIndex)
+        }
+
+        val newDeck = Deck(
+            positionInGameField = indexDeck,
+            closedCards = closedCards,
+            openCards = openCards
+        )
+
+        for (i in currentGameField.decksInGame.indices) {
+            if (i == indexDeck) {
+                decksInGame.add(newDeck)
+            } else {
+                decksInGame.add(currentGameField.decksInGame[i])
+            }
+        }
+        currentGameField = currentGameField.copy(
+            decksInGame = decksInGame
+        )
     }
 
     fun cancelTurn() {
@@ -263,52 +389,6 @@ class MainViewModel(
         currentGameField = currentGameField.copy(decksInGame = decs)
     }
 
-    private fun isPossibleMoveFromTo(
-        cardsForMove: List<Card>,
-        targetDeckIndex: Int,
-
-        ): Boolean {
-        val currentDeck = currentGameField.decksInGame[targetDeckIndex]
-
-        return when {
-            currentDeck.openCards.isEmpty() -> {
-                true
-            }
-
-            currentDeck.openCards.last().value - cardsForMove.first().value == 1 -> {
-                true
-            }
-
-            else -> false
-        }
-    }
-
-    private fun addCardsToDeckAndReturn(
-        cardsForAdd: List<Card>,
-        targetDeckIndex: Int
-    ) {
-        val currentDeck = currentGameField.decksInGame[targetDeckIndex]
-        val openDeck = currentDeck.openCards.toMutableList()
-
-        openDeck.addAll(cardsForAdd)
-
-        val decs = mutableListOf<Deck>()
-
-        for (i in 0 until currentGameField.decksInGame.size) {
-            if (i != targetDeckIndex) {
-                decs.add(currentGameField.decksInGame[i])
-            } else {
-                decs.add(
-                    currentDeck.copy(
-                        openCards = openDeck
-                    )
-                )
-            }
-        }
-
-        currentGameField = currentGameField.copy(decksInGame = decs)
-    }
-
     private fun removeCardFromOpen(
         targetDeckIndex: Int,
         cardForRemove: List<Card>
@@ -336,58 +416,6 @@ class MainViewModel(
 
     private fun validateForcing(): Boolean =
         currentGameField.decksInGame.none { it.openCards.isEmpty() } && currentGameField.additionalDeck.isNotEmpty()
-
-    private fun checkCompleteOpenDeckAndUpdate(
-        targetDeckIndex: Int
-    ) {
-        val currentDeck = currentGameField.decksInGame[targetDeckIndex]
-        val openDeck = currentDeck.openCards.toMutableList()
-        var countSequence = 0
-        var isNeedComplete = false
-
-        if (openDeck.size >= CARDS_ON_SUIT) {
-            val openCardReversed = openDeck.reversed()
-            var tempCard = openCardReversed[0]
-            for (i in 1 until openCardReversed.size) {
-                if (openCardReversed[i].value - tempCard.value == 1) {
-                    tempCard = openCardReversed[i]
-                    countSequence++
-                    if (countSequence == CARDS_ON_SUIT - 1) isNeedComplete = true
-                } else {
-                    break
-                }
-            }
-        }
-
-        val decs = mutableListOf<Deck>()
-        for (i in 0 until currentGameField.decksInGame.size) {
-            if (i != targetDeckIndex) {
-                decs.add(currentGameField.decksInGame[i])
-            } else {
-                decs.add(
-                    currentDeck.copy(
-                        openCards = if (isNeedComplete) {
-                            openDeck.subList(
-                                0,
-                                openDeck.size - CARDS_ON_SUIT
-                            )
-                        } else {
-                            openDeck
-                        }
-                    )
-                )
-            }
-        }
-
-        currentGameField = currentGameField.copy(
-            decksInGame = decs,
-            completableDecksCount = if (countSequence == CARDS_ON_SUIT - 1) {
-                currentGameField.completableDecksCount + 1
-            } else {
-                currentGameField.completableDecksCount
-            }
-        )
-    }
 
     private fun returnForcingAdditional() {
         val currentDeckList = mutableListOf<Deck>()
@@ -478,34 +506,6 @@ class MainViewModel(
             }
         }
         return suitListForGameCards
-    }
-
-    private fun openOneCloseCardInDeck(indexDeck: Int) {
-        val decksInGame = mutableListOf<Deck>()
-        var closedCards = currentGameField.decksInGame[indexDeck].closedCards
-        val openCards = currentGameField.decksInGame[indexDeck].openCards.toMutableList()
-
-        if (openCards.size == 0 && closedCards.isNotEmpty()) {
-            openCards.add(closedCards.last())
-            closedCards = closedCards.subList(0, closedCards.lastIndex)
-        }
-
-        val newDeck = Deck(
-            positionInGameField = indexDeck,
-            closedCards = closedCards,
-            openCards = openCards
-        )
-
-        for (i in currentGameField.decksInGame.indices) {
-            if (i == indexDeck) {
-                decksInGame.add(newDeck)
-            } else {
-                decksInGame.add(currentGameField.decksInGame[i])
-            }
-        }
-        currentGameField = currentGameField.copy(
-            decksInGame = decksInGame
-        )
     }
 
     private fun updateState() {
