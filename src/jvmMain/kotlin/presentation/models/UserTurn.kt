@@ -14,7 +14,7 @@ data class Moving(
 
 data class OpenCloseCard(val indexDeck: Int) : UserTurn()
 
-data class Complete(val indexDeck: Int, val suit: CardSuit) : UserTurn()
+data class CompleteDeck(val indexDeck: Int, val suit: CardSuit) : UserTurn()
 
 data class TransactionTurn(
     val turns: List<UserTurn>

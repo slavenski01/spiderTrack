@@ -8,11 +8,12 @@ import consts.NEED_DECKS_FOR_FINISH
 import data.models.Card
 import data.models.Deck
 import data.repository.DeckRepo
-import presentation.models.Complete
+import presentation.models.CompleteDeck
 import presentation.models.ForcingFromAdditional
 import presentation.models.Moving
 import presentation.models.OpenCloseCard
 import presentation.models.TransactionTurn
+import presentation.models.UserTurn
 import presentation.providers.MainState
 import utils.getCountCloseSlots
 import java.util.Stack
@@ -80,17 +81,51 @@ class MainViewModel(
         )
 
         if (isPossibleMove) {
+            val userTurns = mutableListOf<UserTurn>()
             addCardsToDeckAndReturn(
                 cardsForAdd = cardsForMove,
                 targetDeckIndex = toIndexDeck
             )
+            userTurns.add(
+                Moving(
+                    cardsForMove,
+                    toIndex = fromIndexDeck,
+                    fromIndex = toIndexDeck
+                )
+            )
+            val completeDeckOld = currentGameField.completableDecksCount
             checkCompleteOpenDeckAndUpdate(targetDeckIndex = toIndexDeck)
+            val completeDeckNew = currentGameField.completableDecksCount
+            if (completeDeckOld < completeDeckNew) {
+                userTurns.add(
+                    CompleteDeck(
+                        toIndexDeck,
+                        cardsForMove[0].suit
+                    )
+                )
+            }
+
             removeCardFromOpen(
                 cardForRemove = cardsForMove,
                 targetDeckIndex = fromIndexDeck
             )
+
+            val closeToIndexOld = currentGameField.decksInGame[toIndexDeck].closedCards.size
             openOneCloseCardInDeck(toIndexDeck)
+            val closeToIndexNew = currentGameField.decksInGame[toIndexDeck].closedCards.size
+            if (closeToIndexOld > closeToIndexNew) {
+                userTurns.add(OpenCloseCard(toIndexDeck))
+            }
+
+            val closeFromIndexOld = currentGameField.decksInGame[fromIndexDeck].closedCards.size
             openOneCloseCardInDeck(fromIndexDeck)
+            val closeFromIndexNew = currentGameField.decksInGame[fromIndexDeck].closedCards.size
+            if (closeFromIndexOld > closeFromIndexNew) {
+                userTurns.add(
+                    OpenCloseCard(fromIndexDeck)
+                )
+            }
+            userTurnStack.push(TransactionTurn(userTurns))
             updateState()
         }
     }
@@ -98,7 +133,7 @@ class MainViewModel(
     fun forcingAdditionalCardsAndCheckComplete() {
         if (validateForcing()) {
             val decks = mutableListOf<Deck>()
-            val tempAdditionalDeck = currentGameField.additionalDeck.toMutableList()
+            var tempAdditionalDeck = currentGameField.additionalDeck.toMutableList()
             for (i in 0 until FIELDS_FOR_GAME) {
                 val openCards = currentGameField.decksInGame[i].openCards.toMutableList()
                 openCards.add(tempAdditionalDeck.last())
@@ -107,13 +142,11 @@ class MainViewModel(
                         openCards = openCards
                     )
                 )
-                tempAdditionalDeck.dropLast(1)
-                currentGameField = currentGameField.copy(
-                    additionalDeck = currentGameField.additionalDeck.dropLast(1)
-                )
+                tempAdditionalDeck = tempAdditionalDeck.dropLast(1).toMutableList()
             }
             currentGameField = currentGameField.copy(
-                decksInGame = decks.toList()
+                decksInGame = decks.toList(),
+                additionalDeck = tempAdditionalDeck
             )
 
             currentGameField.decksInGame.forEachIndexed { index, deck ->
@@ -150,7 +183,7 @@ class MainViewModel(
                         cancelOpenCardFromCloseDeck(turn.indexDeck)
                     }
 
-                    is Complete -> {
+                    is CompleteDeck -> {
                         cancelComplete(indexDeck = turn.indexDeck, cardSuit = turn.suit)
                     }
                 }
@@ -177,13 +210,13 @@ class MainViewModel(
     private fun cancelOpenCardFromCloseDeck(
         indexDeck: Int
     ) {
-        val openCards =
+        var openCards =
             currentGameField.decksInGame[indexDeck].openCards.toMutableList()
         val closeCards =
             currentGameField.decksInGame[indexDeck].closedCards.toMutableList()
 
         closeCards.add(openCards.last())
-        openCards.dropLast(1)
+        openCards = openCards.dropLast(1).toMutableList()
 
         val currentDeck = currentGameField.decksInGame[indexDeck]
         val decs = mutableListOf<Deck>()
@@ -379,22 +412,6 @@ class MainViewModel(
             decksInGame = currentDeckList,
             additionalDeck = additionalCardsList.toList(),
         )
-    }
-
-    private fun removeLastCardAndReturnOpenCards(
-        openCards: List<Card>
-    ): List<Card> {
-        val currentOpenCard = arrayListOf<Card>()
-        for (i in openCards.indices) {
-            if (i == openCards.size - 1) {
-                for (j in 0..openCards.size - 2) {
-                    currentOpenCard.add(openCards[i])
-                }
-            } else {
-                currentOpenCard.add(openCards[i])
-            }
-        }
-        return currentOpenCard
     }
 
     private fun createAllCard(
