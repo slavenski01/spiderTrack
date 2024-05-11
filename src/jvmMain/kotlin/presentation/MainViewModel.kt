@@ -14,7 +14,7 @@ import presentation.models.Moving
 import presentation.models.OpenCloseCard
 import presentation.models.TransactionTurn
 import presentation.models.UserTurn
-import presentation.providers.MainState
+import presentation.state.MainState
 import utils.getCountCloseSlots
 import java.util.Stack
 
