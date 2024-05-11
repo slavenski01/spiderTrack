@@ -1,6 +1,6 @@
 package consts
 
-enum class CardSuits {
+enum class CardSuit {
     SUIT_DIAMONDS,
     SUIT_HEART,
     SUIT_CROSS,
