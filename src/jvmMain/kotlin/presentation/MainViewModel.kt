@@ -7,6 +7,7 @@ import consts.FIELDS_FOR_GAME
 import consts.NEED_DECKS_FOR_FINISH
 import data.models.Card
 import data.models.Deck
+import data.models.PlayerStats
 import data.repository.DeckRepo
 import presentation.models.CompleteDeck
 import presentation.models.ForcingFromAdditional
@@ -24,6 +25,7 @@ class MainViewModel(
     private var currentGameField = deckRepo.getCurrentDeckState()
     private var state = MainState(gameField = currentGameField)
     private var userTurnStack: Stack<TransactionTurn> = Stack()
+    private var countMoves = 0
 
     init {
         shuffleAndGetDeckState()
@@ -51,6 +53,7 @@ class MainViewModel(
             decksInGame = createDecksForGame(allCardsList),
             completableDecksCount = 0
         )
+        countMoves = 0
         updateState()
     }
 
@@ -126,6 +129,7 @@ class MainViewModel(
                 )
             }
             userTurnStack.push(TransactionTurn(userTurns))
+            countMoves++
             updateState()
         }
     }
@@ -203,6 +207,7 @@ class MainViewModel(
                     turns = listOf(ForcingFromAdditional)
                 )
             )
+            countMoves++
             updateState()
         }
     }
@@ -314,6 +319,7 @@ class MainViewModel(
                     }
                 }
             }
+            countMoves++
             updateState()
         }
     }
@@ -512,6 +518,9 @@ class MainViewModel(
     }
 
     private fun updateState() {
-        state = MainState(gameField = currentGameField)
+        state = MainState(
+            gameField = currentGameField,
+            playerStats = PlayerStats(countTurns = countMoves)
+        )
     }
 }
