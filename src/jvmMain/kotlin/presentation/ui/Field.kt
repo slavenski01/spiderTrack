@@ -48,11 +48,10 @@ fun GameField(
     onValidateMovement: (Int, Int) -> Boolean,
     onStopMovingOpenCard: (Int, Int, List<Card>) -> Unit
 ) {
-    val countComplete by mutableStateOf(currentGameField.completableDecksCount)
     Column(modifier) {
         TopField(
             modifier = Modifier.fillMaxWidth().height(CARD_HEIGHT.dp).padding(MARGIN_CARD.dp),
-            countComplete = countComplete,
+            countComplete = currentGameField.completableDecksCount,
             onClickAdditionalDeck = onClickAdditionalDeck
         )
         BottomField(
@@ -87,14 +86,24 @@ fun TopField(
                 .height(CARD_HEIGHT.dp)
         )
 
-        for (i in 0 until NEED_DECKS_FOR_FINISH) {
+        for (i in 0 until countComplete) {
             Box(
                 Modifier
                     .width(CARD_WIDTH.dp)
                     .fillMaxHeight()
                     .padding(top = (DELIMITER_CARD).dp)
                     .border(width = 2.dp, color = Color.Black)
-                    .background(if (i < countComplete) Color.Blue else Color.White)
+                    .background(Color.Blue)
+            )
+        }
+        for (i in 0 until NEED_DECKS_FOR_FINISH - countComplete) {
+            Box(
+                Modifier
+                    .width(CARD_WIDTH.dp)
+                    .fillMaxHeight()
+                    .padding(top = (DELIMITER_CARD).dp)
+                    .border(width = 2.dp, color = Color.Black)
+                    .background(Color.White)
             )
         }
     }

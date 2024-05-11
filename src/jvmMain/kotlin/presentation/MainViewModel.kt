@@ -49,7 +49,8 @@ class MainViewModel(
         )
 
         currentGameField = currentGameField.copy(
-            decksInGame = createDecksForGame(allCardsList)
+            decksInGame = createDecksForGame(allCardsList),
+            completableDecksCount = 0
         )
         updateState()
     }
@@ -90,6 +91,7 @@ class MainViewModel(
                 cardForRemove = cardsForMove,
                 targetDeckIndex = fromIndexDeck
             )
+            openOneCloseCardInDeck(toIndexDeck)
             openOneCloseCardInDeck(fromIndexDeck)
             updateState()
         }
@@ -195,7 +197,7 @@ class MainViewModel(
     }
 
     private fun validateForcing(): Boolean =
-        currentGameField.decksInGame.none { it.openCards.isEmpty() }
+        currentGameField.decksInGame.none { it.openCards.isEmpty() } && currentGameField.additionalDeck.isNotEmpty()
 
     fun cancelTurn() {
         userTurnStack?.let {
@@ -236,7 +238,7 @@ class MainViewModel(
                 }
             }
         }
-        println(isNeedComplete)
+
         val decs = mutableListOf<Deck>()
         for (i in 0 until currentGameField.decksInGame.size) {
             if (i != targetDeckIndex) {
@@ -260,9 +262,9 @@ class MainViewModel(
         currentGameField = currentGameField.copy(
             decksInGame = decs,
             completableDecksCount = if (countSequence == CARDS_ON_SUIT - 1) {
-                currentGameField.completableDecksCount
-            } else {
                 currentGameField.completableDecksCount + 1
+            } else {
+                currentGameField.completableDecksCount
             }
         )
     }

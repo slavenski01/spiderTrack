@@ -6,6 +6,7 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -24,7 +25,7 @@ import presentation.ui.GameField
 @Preview
 fun App(mainViewModel: MainViewModel) {
     Column {
-        var state by mutableStateOf(mainViewModel.getCurrentState())
+        var state by remember { mutableStateOf(mainViewModel.getCurrentState()) }
 
         Button(
             modifier = Modifier.align(Alignment.CenterHorizontally),
