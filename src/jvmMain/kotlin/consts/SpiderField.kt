@@ -5,9 +5,18 @@ const val ADDITIONAL_DECKS = 5
 const val FIELDS_FOR_GAME = 10
 const val CARDS_ON_SUIT = 13
 
-const val SUITS_EASY_LEVEL = 1
-const val SUITS_NORMAL_LEVEL = 2
-const val SUITS_HARD_LEVEL = 4
+enum class LevelGame {
+    SUITS_EASY_LEVEL,
+    SUITS_NORMAL_LEVEL,
+    SUITS_HARD_LEVEL;
+
+    fun getCountSuit() =
+        when (this) {
+            SUITS_EASY_LEVEL -> 1
+            SUITS_NORMAL_LEVEL -> 2
+            SUITS_HARD_LEVEL -> 4
+        }
+}
 
 const val CARD_WIDTH = 100f
 const val CARD_HEIGHT = 150f

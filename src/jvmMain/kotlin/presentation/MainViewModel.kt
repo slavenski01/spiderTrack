@@ -4,6 +4,7 @@ import consts.ADDITIONAL_DECKS
 import consts.CARDS_ON_SUIT
 import consts.CardSuit
 import consts.FIELDS_FOR_GAME
+import consts.LevelGame
 import consts.NEED_DECKS_FOR_FINISH
 import data.models.Card
 import data.models.Deck
@@ -32,6 +33,18 @@ class MainViewModel(
     }
 
     fun getCurrentState() = state
+
+    fun setLevelGameFromMenu(positionOptionOnMenu: Int) {
+        val levelGame: LevelGame = when (positionOptionOnMenu) {
+            0 -> LevelGame.SUITS_EASY_LEVEL
+            1 -> LevelGame.SUITS_NORMAL_LEVEL
+            2 -> LevelGame.SUITS_HARD_LEVEL
+            else -> LevelGame.SUITS_EASY_LEVEL
+        }
+        deckRepo.setLevelGame(levelGame)
+        currentGameField = deckRepo.getCurrentDeckState()
+        shuffleAndGetDeckState()
+    }
 
     fun shuffleAndGetDeckState() {
 

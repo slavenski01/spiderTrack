@@ -1,14 +1,14 @@
 package data.source
 
-import consts.SUITS_EASY_LEVEL
+import consts.LevelGame
 import data.models.CurrentGameField
 
-class Local() {
+class Local {
 
     private var currentGameField = CurrentGameField(
         additionalDeck = listOf(),
         decksInGame = listOf(),
-        suitsInGame = SUITS_EASY_LEVEL,
+        suitsInGame = LevelGame.SUITS_EASY_LEVEL.getCountSuit(),
         completableDecksCount = 0
     )
 
@@ -16,5 +16,11 @@ class Local() {
 
     fun updateGameField(gameField: CurrentGameField) {
         currentGameField = gameField
+    }
+
+    fun setLevel(levelGame: LevelGame) {
+        currentGameField = currentGameField.copy(
+            suitsInGame = levelGame.getCountSuit()
+        )
     }
 }

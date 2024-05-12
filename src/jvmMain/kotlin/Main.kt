@@ -1,9 +1,12 @@
 import androidx.compose.desktop.ui.tooling.preview.Preview
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Button
+import androidx.compose.material.DropdownMenu
+import androidx.compose.material.DropdownMenuItem
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -31,7 +34,9 @@ import presentation.ui.GameField
 fun App(
     mainViewModel: MainViewModel
 ) {
-    Column {
+    Column(
+        Modifier.fillMaxWidth()
+    ) {
         var state by remember { mutableStateOf(mainViewModel.getCurrentState()) }
         Text(
             modifier = Modifier.fillMaxWidth(),
@@ -59,6 +64,44 @@ fun App(
                 }
             ) {
                 Text("Новая игра")
+            }
+            Box {
+                var expanded by remember { mutableStateOf(false) }
+                Button(
+                    onClick = { expanded = true }
+                ) {
+                    Text(text = "Выбрать уровень")
+                }
+
+                DropdownMenu(
+                    expanded = expanded,
+                    onDismissRequest = { expanded = false }
+                ) {
+                    DropdownMenuItem(
+                        onClick = {
+                            mainViewModel.setLevelGameFromMenu(positionOptionOnMenu = 0)
+                            state = mainViewModel.getCurrentState()
+                        },
+                    ) {
+                        Text("1 Масть")
+                    }
+                    DropdownMenuItem(
+                        onClick = {
+                            mainViewModel.setLevelGameFromMenu(positionOptionOnMenu = 1)
+                            state = mainViewModel.getCurrentState()
+                        },
+                    ) {
+                        Text("2 Масти")
+                    }
+                    DropdownMenuItem(
+                        onClick = {
+                            mainViewModel.setLevelGameFromMenu(positionOptionOnMenu = 2)
+                            state = mainViewModel.getCurrentState()
+                        }
+                    ) {
+                        Text("3 Масти")
+                    }
+                }
             }
         }
 
