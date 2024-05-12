@@ -182,6 +182,9 @@ class MainViewModel(
 
     fun forcingAdditionalCardsAndCheckComplete() {
         if (validateForcing()) {
+            val turns = mutableListOf<UserTurn>()
+            turns.add(ForcingFromAdditional)
+
             val decks = mutableListOf<Deck>()
             var tempAdditionalDeck = currentGameField.additionalDeck.toMutableList()
             for (i in 0 until FIELDS_FOR_GAME) {
@@ -200,7 +203,11 @@ class MainViewModel(
             )
 
             currentGameField.decksInGame.forEachIndexed { index, deck ->
+                val suit = deck.openCards.last().suit
+                val completeOld = currentGameField.completableDecksCount
                 checkCompleteOpenDeckAndUpdate(targetDeckIndex = index)
+                val completeNew = currentGameField.completableDecksCount
+                if (completeNew != completeOld) turns.add(CompleteDeck(index, suit))
             }
             userTurnStack.push(
                 TransactionTurn(
