@@ -1,33 +1,27 @@
 import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.Button
-import androidx.compose.material.DropdownMenu
-import androidx.compose.material.DropdownMenuItem
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import consts.CARD_WIDTH
+import consts.NEED_DECKS_FOR_FINISH
 import data.repository.DeckRepository
 import data.source.Local
 import presentation.MainViewModel
 import presentation.ui.GameField
+import presentation.ui.draws.TopHeaderBlock
 
 @Composable
 @Preview
@@ -38,72 +32,22 @@ fun App(
         Modifier.fillMaxWidth()
     ) {
         var state by remember { mutableStateOf(mainViewModel.getCurrentState()) }
-        Text(
-            modifier = Modifier.fillMaxWidth(),
-            text = "Ходов: ${state.playerStats.countTurns}",
-            style = TextStyle(textAlign = TextAlign.Center),
-            fontSize = 20.sp
-        )
-        Row(
-            modifier = Modifier.align(Alignment.CenterHorizontally)
-        ) {
-            Button(
-                modifier = Modifier.padding(horizontal = 20.dp),
-                onClick = {
-                    mainViewModel.cancelTurn()
-                    state = mainViewModel.getCurrentState()
-                }
-            ) {
-                Text("Отменить ход")
-            }
-            Button(
-                modifier = Modifier.padding(horizontal = 20.dp),
-                onClick = {
-                    mainViewModel.shuffleAndGetDeckState()
-                    state = mainViewModel.getCurrentState()
-                }
-            ) {
-                Text("Новая игра")
-            }
-            Box {
-                var expanded by remember { mutableStateOf(false) }
-                Button(
-                    onClick = { expanded = true }
-                ) {
-                    Text(text = "Выбрать уровень")
-                }
 
-                DropdownMenu(
-                    expanded = expanded,
-                    onDismissRequest = { expanded = false }
-                ) {
-                    DropdownMenuItem(
-                        onClick = {
-                            mainViewModel.setLevelGameFromMenu(positionOptionOnMenu = 0)
-                            state = mainViewModel.getCurrentState()
-                        },
-                    ) {
-                        Text("1 Масть")
-                    }
-                    DropdownMenuItem(
-                        onClick = {
-                            mainViewModel.setLevelGameFromMenu(positionOptionOnMenu = 1)
-                            state = mainViewModel.getCurrentState()
-                        },
-                    ) {
-                        Text("2 Масти")
-                    }
-                    DropdownMenuItem(
-                        onClick = {
-                            mainViewModel.setLevelGameFromMenu(positionOptionOnMenu = 2)
-                            state = mainViewModel.getCurrentState()
-                        }
-                    ) {
-                        Text("3 Масти")
-                    }
-                }
+        TopHeaderBlock(
+            countTurns = state.playerStats.countTurns,
+            onCancelTurn = {
+                mainViewModel.cancelTurn()
+                state = mainViewModel.getCurrentState()
+            },
+            onNewGameClick = {
+                mainViewModel.shuffleAndGetDeckState()
+                state = mainViewModel.getCurrentState()
+            },
+            onLevelChangeClick = {
+                mainViewModel.setLevelGameFromMenu(positionOptionOnMenu = it)
+                state = mainViewModel.getCurrentState()
             }
-        }
+        )
 
         GameField(
             modifier = Modifier.fillMaxWidth(),
@@ -127,6 +71,17 @@ fun App(
                 state = mainViewModel.getCurrentState()
             }
         )
+
+        Box(
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            if (state.gameField.completableDecksCount == NEED_DECKS_FOR_FINISH) {
+                Text(
+                    modifier = Modifier.padding(20.dp),
+                    text = "WIN"
+                )
+            }
+        }
     }
 }
 
